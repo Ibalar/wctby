@@ -6,16 +6,8 @@
 @section('meta_keywords', 'электроника, смартфоны, компьютеры, наушники, планшеты, купить')
 
 @section('content')
-    <!-- Hero section placeholder -->
-    <section class="container pt-4">
-        <div class="p-5 mb-4 bg-body-tertiary rounded-5">
-            <div class="container-fluid py-5">
-                <h1 class="display-5 fw-bold">Добро пожаловать в {{ config('app.name', 'WCT.BY') }}</h1>
-                <p class="col-md-8 fs-4">Интернет-магазин электроники и товаров по выгодным ценам. Широкий ассортимент, быстрая доставка, гарантия качества.</p>
-                <a href="#" class="btn btn-primary btn-lg" type="button">Перейти в каталог</a>
-            </div>
-        </div>
-    </section>
+    <!-- Hero Slider -->
+    <x-slider :slides="$slides" />
 
     <!-- Features -->
     <section class="container pt-5 mt-1 mt-sm-3 mt-lg-4">
