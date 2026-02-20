@@ -1,0 +1,21 @@
+{
+    "name": "WCT.BY - Интернет-магазин",
+    "short_name": "WCT.BY",
+    "description": "Интернет-магазин электроники и товаров",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#1d2c41",
+    "icons": [
+        {
+            "src": "assets/app-icons/icon-32x32.png",
+            "sizes": "32x32",
+            "type": "image/png"
+        },
+        {
+            "src": "assets/app-icons/icon-180x180.png",
+            "sizes": "180x180",
+            "type": "image/png"
+        }
+    ]
+}
