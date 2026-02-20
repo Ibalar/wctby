@@ -17,8 +17,8 @@ return new class extends Migration
             $table->string('subtitle')->nullable();
             $table->string('link')->nullable();
             $table->string('link_text')->nullable();
+            $table->string('image')->nullable();
             $table->integer('position')->default(0);
-            $table->integer('sort_order')->default(0);
             $table->boolean('active')->default(true);
             $table->timestamps();
         });

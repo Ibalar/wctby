@@ -15,15 +15,14 @@ class Slide extends Model implements HasMedia
         'subtitle',
         'link',
         'link_text',
+        'image',
         'position',
-        'sort_order',
         'active',
     ];
 
     protected $casts = [
         'active' => 'boolean',
         'position' => 'integer',
-        'sort_order' => 'integer',
     ];
 
     public function scopeActive($query)
@@ -33,7 +32,7 @@ class Slide extends Model implements HasMedia
 
     public function scopeOrdered($query)
     {
-        return $query->orderBy('sort_order')->orderBy('position');
+        return $query->orderBy('position');
     }
 
     public function registerMediaCollections(): void
