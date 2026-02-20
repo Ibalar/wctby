@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\MoonShine\Layouts;
 
+use App\MoonShine\Resources\Slide\SlideResource;
 use MoonShine\Laravel\Layouts\AppLayout;
 use MoonShine\ColorManager\Palettes\PurplePalette;
 use MoonShine\ColorManager\ColorManager;
@@ -53,6 +54,7 @@ final class MoonShineLayout extends AppLayout
             MenuItem::make(OrderItemResource::class, 'OrderItems'),
             ...parent::menu(),
             MenuItem::make(ProductPropertyResource::class, 'ProductProperties'),
+            MenuItem::make(SlideResource::class, 'Слайдер'),
         ];
     }
 
