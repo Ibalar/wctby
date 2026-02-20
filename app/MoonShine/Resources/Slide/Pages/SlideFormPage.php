@@ -40,10 +40,9 @@ class SlideFormPage extends FormPage
                 Text::make('Ссылка', 'link'),
                 Text::make('Текст кнопки', 'link_text')
                     ->default('Подробнее'),
+                Text::make('Изображение', 'image'),
                 Number::make('Позиция', 'position')->default(0),
-                Number::make('Порядок сортировки', 'sort_order')->default(0),
                 Switcher::make('Активен', 'active')->default(true),
-                Image::make('Изображение', 'image'),
             ]),
         ];
     }

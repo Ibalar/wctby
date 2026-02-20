@@ -34,10 +34,9 @@ class SlideDetailPage extends DetailPage
             Textarea::make('Подзаголовок', 'subtitle'),
             Text::make('Ссылка', 'link'),
             Text::make('Текст кнопки', 'link_text'),
+            Text::make('Изображение', 'image'),
             Number::make('Позиция', 'position'),
-            Number::make('Порядок сортировки', 'sort_order'),
             Switcher::make('Активен', 'active'),
-            Image::make('Изображение', 'image'),
         ];
     }
 
