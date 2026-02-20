@@ -20,6 +20,7 @@ use App\MoonShine\Resources\BundleItem\BundleItemResource;
 use App\MoonShine\Resources\Order\OrderResource;
 use App\MoonShine\Resources\OrderItem\OrderItemResource;
 use App\MoonShine\Resources\ProductProperty\ProductPropertyResource;
+use App\MoonShine\Resources\Slide\SlideResource;
 
 class MoonShineServiceProvider extends ServiceProvider
 {
@@ -42,6 +43,7 @@ class MoonShineServiceProvider extends ServiceProvider
                 OrderResource::class,
                 OrderItemResource::class,
                 ProductPropertyResource::class,
+                SlideResource::class,
             ])
             ->pages([
                 ...$core->getConfig()->getPages(),

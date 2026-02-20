@@ -7,6 +7,6 @@ Route::prefix('laravel-filemanager')->group(function () {
     Lfm::routes();
 });
 
-Route::get('/', function () {
-    return view('home');
-});
+use App\Http\Controllers\HomeController;
+
+Route::get('/', [HomeController::class, 'index']);
