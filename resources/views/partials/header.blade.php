@@ -12,9 +12,17 @@
                 <!-- Navbar brand (Logo) -->
                 <a href="{{ url('/') }}" class="navbar-brand me-0">
                     <span class="d-none d-sm-flex flex-shrink-0 text-primary me-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"><path d="M36 18.01c0 8.097-5.355 14.949-12.705 17.2a18.12 18.12 0 0 1-5.315.79C9.622 36 2.608 30.313.573 22.611.257 21.407.059 20.162 0 18.879v-1.758c.02-.395.059-.79.099-1.185.099-.908.277-1.817.514-2.686C2.687 5.628 9.682 0 18 0c5.572 0 10.551 2.528 13.871 6.517 1.502 1.797 2.648 3.91 3.359 6.201.494 1.659.771 3.436.771 5.292z" fill="currentColor"/><g fill="#fff"><path d="M17.466 21.624c-.514 0-.988-.316-1.146-.829-.198-.632.138-1.303.771-1.501l7.666-2.469-1.205-8.254-13.317 4.621a1.19 1.19 0 0 1-1.521-.75 1.19 1.19 0 0 1 .751-1.521l13.89-4.818c.553-.197 1.166-.138 1.64.158a1.82 1.82 0 0 1 .85 1.284l1.344 9.183c.138.987-.494 1.994-1.482 2.33l-7.864 2.528-.375.04zm7.31.138c-.178-.632-.85-1.007-1.482-.81l-5.177 1.58c-2.331.79-3.28.02-3.418-.099l-6.56-8.412a4.25 4.25 0 0 0-4.406-1.758l-3.122.987c-.237.889-.415 1.777-.514 2.686l4.228-1.363a1.84 1.84 0 0 1 1.857.81l6.659 8.551c.751.948 2.015 1.323 3.359 1.323.909 0 1.857-.178 2.687-.474l5.078-1.54c.632-.178 1.008-.829.81-1.481z"/><use href="#czlogo"/><use href="#czlogo" x="8.516" y="-2.172"/></g><defs><path id="czlogo" d="M18.689 28.654a1.94 1.94 0 0 1-1.936 1.935 1.94 1.94 0 0 1-1.936-1.935 1.94 1.94 0 0 1 1.936-1.935 1.94 1.94 0 0 1 1.936 1.935z"/></defs></svg>
+                        <svg width="57" height="45" viewBox="0 0 65 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M57.4468 37.1226H52.2317C51.9852 37.1226 51.775 37.2437 51.6524 37.4568L49.3004 41.5314C49.1779 41.7444 49.1779 41.9881 49.3004 42.2012C49.423 42.4142 49.6346 42.5354 49.8797 42.5354C53.3736 42.5354 56.8689 42.5354 60.3628 42.5354H61.7261C63.5267 42.5354 65 41.0621 65 39.2615V34.506V28.4762V14.3405V8.31073V3.27527C65 1.59725 63.7202 0.20192 62.0868 0.0222813C61.8166 -0.00835478 61.5688 0.116974 61.4337 0.352315L58.3854 5.63147L56.3885 9.09056L51.1595 18.1463L48.146 23.367L46.8105 25.68L45.0698 28.6935L41.945 34.1063L40.2043 37.1212L35.2454 45.7104C35.1229 45.9235 34.9112 46.0446 34.6661 46.0446H30.8199C30.5748 46.0446 30.3631 45.9235 30.2406 45.7104C30.118 45.4974 30.118 45.2537 30.2406 45.042L31.3532 43.1147C31.4758 42.9016 31.6874 42.7805 31.9325 42.7805H33.0702C33.3153 42.7805 33.527 42.6593 33.6495 42.4463L36.7229 37.1226L38.4636 34.1077L41.5885 28.6949L43.3292 25.6814L48.0805 17.4514L50.1415 13.8823L53.2887 8.43049L55.0293 5.41562L57.5749 1.00681C57.6975 0.79375 57.6975 0.550054 57.5749 0.336994C57.4524 0.123934 57.2407 0.00278357 56.9956 0.00278357H49.9939H46.5125H39.8534H38.3522H34.8708H32.5675H27.0962C26.8497 0.00278357 26.6395 0.123934 26.5169 0.336994L23.5856 5.41562L21.8449 8.43049L18.72 13.8433L13.8447 22.2877L8.43188 31.6624L6.66613 34.7204C6.51295 34.9864 6.21077 35.1117 5.91276 35.0324C5.61615 34.953 5.41701 34.6926 5.41701 34.3862V30.8547V16.7189V10.6892V7.55318C5.41701 6.37509 6.37787 5.41562 7.55458 5.41562H8.07539C8.32187 5.41562 8.53214 5.29447 8.65469 5.08141L11.0067 1.00681C11.1293 0.79375 11.1293 0.550054 11.0067 0.336994C10.8842 0.123934 10.6725 0.00278357 10.4274 0.00278357H7.87765H3.42289H3.27388C1.47332 0.00278357 0 1.4761 0 3.27667V5.93086V20.0666V26.0964V39.2643C0 39.5386 0.0348125 39.806 0.0988698 40.0608C0.373202 41.1456 1.19202 42.0202 2.24618 42.3711C2.56925 42.4783 2.916 42.5368 3.27388 42.5368H7.87487H9.92609C10.1712 42.5368 10.3828 42.4156 10.5054 42.2026L13.4367 37.124L15.1774 34.1091L18.3023 28.6963L20.043 25.6828L25.1383 16.8582L26.879 13.8447L30.0039 8.43188L31.551 5.75122C31.6735 5.53817 31.8852 5.41701 32.1303 5.41701H35.2245H43.3862H45.7076C45.9541 5.41701 46.1644 5.53956 46.2869 5.75122C46.4095 5.96428 46.4095 6.20798 46.2869 6.42104L45.1255 8.43188L42.0007 13.8447L40.26 16.8582L35.1646 25.6828L33.424 28.6963L30.2991 34.1091L28.5584 37.124L25.4335 42.5368L24.4615 44.2204L21.2545 49.7753C21.0484 50.1332 21.0484 50.5426 21.2545 50.8991C21.4606 51.2569 21.8157 51.4616 22.2279 51.4616H32.4979H42.768C43.1801 51.4616 43.5352 51.2569 43.7413 50.8991C43.9474 50.5426 43.9474 50.1318 43.7413 49.7753L40.5343 44.2204L40.1416 43.5408C40.0191 43.3278 40.0191 43.0841 40.1416 42.871C40.2642 42.6579 40.4758 42.5368 40.7209 42.5368H44.8498C45.0963 42.5368 45.3066 42.4156 45.4291 42.2026L48.3604 37.124L50.1011 34.1091L56.5667 22.9102L58.3325 19.8522C58.4857 19.5862 58.7878 19.4609 59.0858 19.5402C59.3825 19.6196 59.5816 19.88 59.5816 20.1864V23.7179V34.9864C59.5844 36.1617 58.6235 37.1212 57.4468 37.1226ZM38.5193 13.8419L41.0649 9.43312C41.1874 9.22006 41.1874 8.97637 41.0649 8.76331C40.9423 8.55025 40.7307 8.4291 40.4856 8.4291H33.8696C33.6231 8.4291 33.4128 8.55025 33.2903 8.76331L30.359 13.8419L28.6183 16.8554L23.5229 25.68L21.7822 28.6935L18.6574 34.1063L16.9167 37.1212L14.3711 41.53C14.2486 41.743 14.2486 41.9867 14.3711 42.1998C14.4936 42.4129 14.7053 42.534 14.9504 42.534H17.5057H21.5664C21.8129 42.534 22.0232 42.4129 22.1457 42.1998L25.077 37.1212L26.8177 34.1063L29.9426 28.6935L31.6833 25.68L36.7786 16.8554L38.5193 13.8419ZM10.199 8.4291L8.51822 11.3409C8.45695 11.4468 8.4291 11.5526 8.4291 11.6751V23.133C8.4291 23.4408 8.62823 23.6998 8.92484 23.7792C9.22146 23.8585 9.52364 23.7332 9.67821 23.4672C12.7293 18.1839 15.3125 13.7082 18.3621 8.4277L20.1028 5.41284L22.6484 1.00403C22.771 0.790967 22.771 0.547271 22.6484 0.334211C22.5259 0.121151 22.3142 0 22.0691 0H15.4531C15.2066 0 14.9964 0.121151 14.8738 0.334211L11.9425 5.41284L10.199 8.4291Z" fill="url(#paint0_linear_1_48)" />
+                          <defs>
+                            <linearGradient id="paint0_linear_1_48" x1="13.3531" y1="49.731" x2="51.2272" y2="-7.16519" gradientUnits="userSpaceOnUse">
+                              <stop stop-color="#3E12EB" />
+                              <stop offset="1" stop-color="#97F8F7" />
+                            </linearGradient>
+                          </defs>
+                        </svg>
                     </span>
-                    {{ config('app.name', 'WCT.BY') }}
+                    WCT.BY
                 </a>
             </div>
             <div class="col col-lg-9 d-flex align-items-center justify-content-end">
@@ -119,7 +127,7 @@
     </div>
 
     <!-- Main navigation that turns into offcanvas on screens < 992px wide (lg breakpoint) -->
-    <div class="collapse navbar-stuck-hide" id="stuckNav">
+    <div class="collapse bg-dark-two navbar-stuck-hide" id="stuckNav">
         <nav class="offcanvas offcanvas-start" id="navbarNav" tabindex="-1" aria-labelledby="navbarNavLabel">
             <div class="offcanvas-header py-3">
                 <h5 class="offcanvas-title" id="navbarNavLabel">Меню</h5>
@@ -129,84 +137,10 @@
                 <div class="container px-0 px-lg-3">
                     <div class="row">
                         <!-- Categories mega menu -->
-                        <div class="col-lg-3">
-                            <div class="navbar-nav">
-                                <div class="dropdown w-100">
-                                    <!-- Button visible on screens > 991px wide (lg breakpoint) -->
-                                    <div class="cursor-pointer d-none d-lg-block" data-bs-toggle="dropdown" data-bs-trigger="hover" data-bs-theme="dark">
-                                        <a class="position-absolute top-0 start-0 w-100 h-100" href="#">
-                                            <span class="visually-hidden">Категории</span>
-                                        </a>
-                                        <button type="button" class="btn btn-lg btn-secondary dropdown-toggle w-100 rounded-bottom-0 justify-content-start pe-none">
-                                            <i class="ci-grid fs-lg"></i>
-                                            <span class="ms-2 me-auto">Каталог</span>
-                                        </button>
-                                    </div>
-
-                                    <!-- Button visible on screens < 992px wide (lg breakpoint) -->
-                                    <button type="button" class="btn btn-lg btn-secondary dropdown-toggle w-100 justify-content-start d-lg-none mb-2" data-bs-toggle="dropdown" data-bs-auto-close="outside">
-                                        <i class="ci-grid fs-lg"></i>
-                                        <span class="ms-2 me-auto">Каталог</span>
-                                    </button>
-
-                                    <!-- Simple dropdown menu -->
-                                    <ul class="dropdown-menu dropdown-menu-static w-100 rounded-top-0 rounded-bottom-4 py-1 p-lg-1" style="--cz-dropdown-spacer: 0; --cz-dropdown-item-padding-y: .625rem; --cz-dropdown-item-spacer: 0">
-                                        <li class="d-lg-none pt-2">
-                                            <a class="dropdown-item fw-medium" href="#">
-                                                <i class="ci-grid fs-xl opacity-60 pe-1 me-2"></i>
-                                                Все категории
-                                                <i class="ci-chevron-right fs-base ms-auto me-n1"></i>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item fw-medium" href="#">
-                                                <i class="ci-computer fs-xl opacity-60 pe-1 me-2"></i>
-                                                <span class="text-truncate">Компьютеры и аксессуары</span>
-                                                <i class="ci-chevron-right fs-base ms-auto me-n1"></i>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item fw-medium" href="#">
-                                                <i class="ci-smartphone-2 fs-xl opacity-60 pe-1 me-2"></i>
-                                                <span class="text-truncate">Смартфоны и планшеты</span>
-                                                <i class="ci-chevron-right fs-base ms-auto me-n1"></i>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item fw-medium" href="#">
-                                                <i class="ci-monitor-2 fs-xl opacity-60 pe-1 me-2"></i>
-                                                <span class="text-truncate">ТВ, видео и аудио</span>
-                                                <i class="ci-chevron-right fs-base ms-auto me-n1"></i>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item fw-medium" href="#">
-                                                <i class="ci-camera-2 fs-xl opacity-60 pe-1 me-2"></i>
-                                                <span class="text-truncate">Камеры и фото</span>
-                                                <i class="ci-chevron-right fs-base ms-auto me-n1"></i>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item fw-medium" href="#">
-                                                <i class="ci-headphones-2 fs-xl opacity-60 pe-1 me-2"></i>
-                                                <span class="text-truncate">Наушники</span>
-                                                <i class="ci-chevron-right fs-base ms-auto me-n1"></i>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item fw-medium" href="#">
-                                                <i class="ci-watch-2 fs-xl opacity-60 pe-1 me-2"></i>
-                                                <span class="text-truncate">Умные часы</span>
-                                                <i class="ci-chevron-right fs-base ms-auto me-n1"></i>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
+                        @include('partials.categories-mega-menu', ['categories' => $categories])
 
                         <!-- Navbar nav -->
-                        <div class="col-lg-9 d-lg-flex pt-3 pt-lg-0 ps-lg-0">
+                        <div class="col-lg-9 d-lg-flex align-self-center pt-3 pt-lg-0 ps-lg-0">
                             <ul class="navbar-nav position-relative">
                                 <li class="nav-item">
                                     <a class="nav-link active" aria-current="page" href="{{ url('/') }}">Главная</a>
@@ -224,22 +158,6 @@
                                         <li><a class="dropdown-item" href="#">Контакты</a></li>
                                         <li><a class="dropdown-item" href="#">Доставка</a></li>
                                         <li><a class="dropdown-item" href="#">Оплата</a></li>
-                                    </ul>
-                                </li>
-                            </ul>
-                            <hr class="d-lg-none my-3">
-                            <ul class="navbar-nav ms-auto">
-                                <li class="nav-item dropdown me-lg-n2 me-xl-n1">
-                                    <a class="nav-link dropdown-toggle fs-sm px-3" href="#" role="button" data-bs-toggle="dropdown" data-bs-trigger="hover" aria-expanded="false">Рус</a>
-                                    <ul class="dropdown-menu fs-sm" style="--cz-dropdown-min-width: 7.5rem; --cz-dropdown-spacer: .25rem">
-                                        <li><a class="dropdown-item" href="#">English</a></li>
-                                    </ul>
-                                </li>
-                                <li class="nav-item dropdown me-lg-n1">
-                                    <a class="nav-link dropdown-toggle fs-sm px-3" href="#" role="button" data-bs-toggle="dropdown" data-bs-trigger="hover" aria-expanded="false">BYN (р)</a>
-                                    <ul class="dropdown-menu dropdown-menu-end fs-sm" style="--cz-dropdown-min-width: 7rem; --cz-dropdown-spacer: .25rem">
-                                        <li><a class="dropdown-item" href="#">USD ($)</a></li>
-                                        <li><a class="dropdown-item" href="#">EUR (€)</a></li>
                                     </ul>
                                 </li>
                             </ul>

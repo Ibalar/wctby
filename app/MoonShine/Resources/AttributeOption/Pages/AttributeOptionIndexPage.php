@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\MoonShine\Resources\AttributeOption\Pages;
 
+use App\MoonShine\Resources\Attribute\AttributeResource;
+use MoonShine\Laravel\Fields\Relationships\BelongsTo;
 use MoonShine\Laravel\Pages\Crud\IndexPage;
 use MoonShine\Contracts\UI\ComponentContract;
 use MoonShine\UI\Components\Table\TableBuilder;
@@ -13,6 +15,8 @@ use MoonShine\UI\Components\Metrics\Wrapped\Metric;
 use MoonShine\UI\Fields\ID;
 use App\MoonShine\Resources\AttributeOption\AttributeOptionResource;
 use MoonShine\Support\ListOf;
+use MoonShine\UI\Fields\Number;
+use MoonShine\UI\Fields\Text;
 use Throwable;
 
 
@@ -30,6 +34,10 @@ class AttributeOptionIndexPage extends IndexPage
     {
         return [
             ID::make(),
+            Text::make('Значение', 'value')->sortable(),
+            BelongsTo::make('Атрибут', 'attribute', resource: AttributeResource::class)->sortable(),
+            Number::make('Порядок сортировки', 'sort_order')
+                ->updateOnPreview(),
         ];
     }
 

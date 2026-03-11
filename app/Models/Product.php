@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Product extends Model implements HasMedia
 {
@@ -40,6 +41,19 @@ class Product extends Model implements HasMedia
     public function bundles()
     {
         return $this->belongsToMany(Bundle::class, 'bundle_items');
+    }
+
+    public function attributeOptions(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            AttributeOption::class,
+            'attribute_option_product'
+        )->with('attribute');
+    }
+
+    public function productAttributes()
+    {
+        return $this->hasMany(ProductAttributeOption::class);
     }
 
     public function registerMediaCollections(): void

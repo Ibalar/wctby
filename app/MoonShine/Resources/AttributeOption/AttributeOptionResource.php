@@ -21,7 +21,7 @@ class AttributeOptionResource extends ModelResource
     protected string $model = AttributeOption::class;
 
     protected string $title = 'Опции атрибутов';
-    protected string $column = 'value';
+    protected string $column = 'label';
 
     /**
      * @return list<class-string<PageContract>>

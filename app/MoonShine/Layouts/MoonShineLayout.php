@@ -22,6 +22,7 @@ use App\MoonShine\Resources\BundleItem\BundleItemResource;
 use App\MoonShine\Resources\Order\OrderResource;
 use App\MoonShine\Resources\OrderItem\OrderItemResource;
 use App\MoonShine\Resources\ProductProperty\ProductPropertyResource;
+use App\MoonShine\Resources\ProductAttributeOption\ProductAttributeOptionResource;
 
 final class MoonShineLayout extends AppLayout
 {
@@ -44,17 +45,19 @@ final class MoonShineLayout extends AppLayout
                 MenuItem::make(ProductResource::class, 'Товары'),
                 MenuItem::make(CategoryResource::class, 'Категории'),
                 MenuItem::make(SkuResource::class, 'SKU/Варианты'),
+                MenuItem::make(ProductPropertyResource::class, 'Характеристики товаров'),
                 MenuItem::make(BundleResource::class, 'Комплекты'),
             ])->icon('shopping-bag'),
-            MenuGroup::make('Характеристики')->setItems([
-                MenuItem::make(AttributeResource::class, 'Характеристики'),
-                MenuItem::make(AttributeOptionResource::class, 'Значения характеристик'),
+            MenuGroup::make('Фильтры')->setItems([
+                MenuItem::make(AttributeResource::class, 'Группы опций'),
+                MenuItem::make(AttributeOptionResource::class, 'Значения опций'),
             ])->icon('cog-8-tooth'),
             MenuItem::make(OrderResource::class, 'Заказы'),
             MenuItem::make(OrderItemResource::class, 'OrderItems'),
             ...parent::menu(),
-            MenuItem::make(ProductPropertyResource::class, 'ProductProperties'),
+
             MenuItem::make(SlideResource::class, 'Слайдер'),
+            MenuItem::make(ProductAttributeOptionResource::class, 'ProductAttributeOptions'),
         ];
     }
 

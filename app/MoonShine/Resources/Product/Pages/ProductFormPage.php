@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\MoonShine\Resources\Product\Pages;
 
+use App\Models\AttributeOption;
+use App\MoonShine\Resources\Attribute\AttributeResource;
+use App\MoonShine\Resources\ProductAttributeOption\ProductAttributeOptionResource;
 use Illuminate\Support\Arr;
 use App\MoonShine\Resources\AttributeOption\AttributeOptionResource;
 use App\MoonShine\Resources\Category\CategoryResource;
@@ -98,11 +101,6 @@ class ProductFormPage extends FormPage
                                 colSpan: 6,
                             )
                         ]),
-
-
-
-
-
                         Number::make('Базовая цена', 'base_price')->min(0)->step(0.01),
                         Json::make('Флаги', 'flags')
                             ->fields([
@@ -164,7 +162,25 @@ class ProductFormPage extends FormPage
                     ]),
 
                     Tab::make('Характеристики', [
-                        RelationRepeater::make('Характеристики', 'properties', resource: ProductPropertyResource::class)
+                        // RelationRepeater для характеристик через ProductAttributeOption
+                        RelationRepeater::make(
+                            'Характеристики',
+                            'productAttributes',
+                            resource: ProductAttributeOptionResource::class
+                        )
+                            ->fields([
+                                BelongsTo::make(
+                                    'Значение',
+                                    'attributeOption',
+                                    resource: AttributeOptionResource::class
+                                )
+                                    ->searchable()
+                            ])
+                            ->creatable()
+                            ->removable(),  // позволяет удалять строки
+
+                        // RelationRepeater для свойств (ProductProperty)
+                        RelationRepeater::make('Свойства', 'properties', resource: ProductPropertyResource::class)
                             ->fields([
                                 ID::make(),
                                 Text::make('Название', 'name')->required(),

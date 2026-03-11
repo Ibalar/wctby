@@ -13,6 +13,7 @@ use MoonShine\UI\Components\Metrics\Wrapped\Metric;
 use MoonShine\UI\Fields\ID;
 use App\MoonShine\Resources\ProductProperty\ProductPropertyResource;
 use MoonShine\Support\ListOf;
+use MoonShine\UI\Fields\Text;
 use Throwable;
 
 
@@ -30,6 +31,7 @@ class ProductPropertyIndexPage extends IndexPage
     {
         return [
             ID::make(),
+            Text::make('Название', 'name')->sortable(),
         ];
     }
 

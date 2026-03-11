@@ -27,4 +27,18 @@ class AttributeOption extends Model
     {
         return $this->belongsToMany(Sku::class, 'attribute_option_sku');
     }
+
+    public function products(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Product::class,
+            'attribute_option_product'
+        );
+    }
+
+    // Для MoonShine
+    public function getLabelAttribute(): string
+    {
+        return $this->attribute?->name . ': ' . $this->value;
+    }
 }
