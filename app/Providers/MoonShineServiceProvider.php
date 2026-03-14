@@ -21,6 +21,8 @@ use App\MoonShine\Resources\Order\OrderResource;
 use App\MoonShine\Resources\OrderItem\OrderItemResource;
 use App\MoonShine\Resources\Slide\SlideResource;
 use App\MoonShine\Resources\ProductAttributeOption\ProductAttributeOptionResource;
+use App\MoonShine\Resources\PaymentMethod\PaymentMethodResource;
+use App\MoonShine\Resources\DeliveryMethod\DeliveryMethodResource;
 
 class MoonShineServiceProvider extends ServiceProvider
 {
@@ -44,6 +46,8 @@ class MoonShineServiceProvider extends ServiceProvider
                 OrderItemResource::class,
                 SlideResource::class,
                 ProductAttributeOptionResource::class,
+                PaymentMethodResource::class,
+                DeliveryMethodResource::class,
             ])
             ->pages([
                 ...$core->getConfig()->getPages(),
