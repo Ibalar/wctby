@@ -13,20 +13,16 @@ class Product extends Model implements HasMedia
 
     protected $fillable = [
         'category_id','type','name','slug','sku','short_description','images',
-        'description','base_price','flags','is_active',
+        'description','base_price','flags','properties','is_active',
         'meta_title','meta_description','meta_keywords',
     ];
 
     protected $casts = [
         'flags' => 'array',
+        'properties' => 'array',
         'is_active' => 'boolean',
         'images' => 'array',
     ];
-
-    public function properties()
-    {
-        return $this->hasMany(ProductProperty::class);
-    }
 
     public function category()
     {
