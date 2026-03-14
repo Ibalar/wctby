@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ProductAttributeOption extends Model
 {
     protected $table = 'attribute_option_product';
+    public $timestamps = false;
     protected $fillable = ['product_id', 'attribute_option_id'];
 
     // Виртуальное поле для RelationRepeater
