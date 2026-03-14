@@ -9,6 +9,7 @@ Route::prefix('laravel-filemanager')->group(function () {
     Lfm::routes();
 });
 
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\HomeController;
 
 Route::get('/', [HomeController::class, 'index']);
@@ -17,3 +18,11 @@ Route::get('/catalog', [CategoryController::class, 'index'])->name('catalog.inde
 Route::get('/catalog/{slug}', [CategoryController::class, 'show'])->name('catalog.category');
 
 Route::get('/product/{slug}', [ProductController::class, 'show'])->name('catalog.product');
+
+// Корзина
+Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+Route::post('/cart/update/{item}', [CartController::class, 'update'])->name('cart.update');
+Route::post('/cart/remove/{item}', [CartController::class, 'remove'])->name('cart.remove');
+Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
+Route::get('/cart/data', [CartController::class, 'data'])->name('cart.data');
