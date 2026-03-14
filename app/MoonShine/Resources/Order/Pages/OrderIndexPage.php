@@ -35,7 +35,7 @@ class OrderIndexPage extends IndexPage
     {
         return [
             ID::make(),
-            Text::make('Номер', 'number')->link(),
+            Text::make('Номер', 'number'),
             Badge::make('Статус', 'status')
                 ->color(fn ($value): string => match ($value) {
                     'new' => 'blue',
@@ -45,8 +45,8 @@ class OrderIndexPage extends IndexPage
                 }),
             Text::make('Клиент', 'customer_name'),
             Text::make('Телефон', 'customer_phone'),
-            Number::make('Сумма', 'total')->money(),
-            Date::make('Дата', 'created_at')->format('d.m.Y H:i'),
+            Number::make('Сумма', 'total'),
+            Date::make('Дата', 'created_at'),
         ];
     }
 
@@ -76,7 +76,7 @@ class OrderIndexPage extends IndexPage
     protected function queryTags(): array
     {
         return [
-            QueryTag::make('Все', fn () => null),
+            QueryTag::make('Все', fn ($query) => $query),
             QueryTag::make('Новые', fn ($query) => $query->where('status', 'new')),
             QueryTag::make('В обработке', fn ($query) => $query->where('status', 'processing')),
             QueryTag::make('Выполненные', fn ($query) => $query->where('status', 'completed')),
@@ -90,11 +90,11 @@ class OrderIndexPage extends IndexPage
     {
         return [
             ValueMetric::make('Заказов сегодня')
-                ->value(Order::query()->whereDate('created_at', today())->count()),
+                ->value(fn (): int => Order::whereDate('created_at', today())->count()),
 
             ValueMetric::make('Сумма сегодня')
-                ->value(Order::query()->whereDate('created_at', today())->sum('total'))
-                ->format('0.00 BYN'),
+                ->value(fn (): float => (float) Order::whereDate('created_at', today())->sum('total'))
+                ->valueFormat(fn (float $value): string => number_format($value, 2) . ' BYN'),
         ];
     }
 
