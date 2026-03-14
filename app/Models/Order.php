@@ -9,6 +9,8 @@ class Order extends Model
     protected $fillable = [
         'user_id','number','status','currency','subtotal','discount_amount',
         'shipping_amount','total','payment_method','delivery_method',
+        'payment_method_code','payment_method_name',
+        'delivery_method_code','delivery_method_name','delivery_price',
         'customer_name','customer_phone','customer_email','shipping_address',
     ];
 
@@ -17,6 +19,7 @@ class Order extends Model
         'discount_amount' => 'float',
         'shipping_amount' => 'float',
         'total' => 'float',
+        'delivery_price' => 'float',
         'shipping_address' => 'array',
     ];
 
