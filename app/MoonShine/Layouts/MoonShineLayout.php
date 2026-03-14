@@ -21,7 +21,6 @@ use App\MoonShine\Resources\Bundle\BundleResource;
 use App\MoonShine\Resources\BundleItem\BundleItemResource;
 use App\MoonShine\Resources\Order\OrderResource;
 use App\MoonShine\Resources\OrderItem\OrderItemResource;
-use App\MoonShine\Resources\ProductProperty\ProductPropertyResource;
 use App\MoonShine\Resources\ProductAttributeOption\ProductAttributeOptionResource;
 
 final class MoonShineLayout extends AppLayout
@@ -45,7 +44,6 @@ final class MoonShineLayout extends AppLayout
                 MenuItem::make(ProductResource::class, 'Товары'),
                 MenuItem::make(CategoryResource::class, 'Категории'),
                 MenuItem::make(SkuResource::class, 'SKU/Варианты'),
-                MenuItem::make(ProductPropertyResource::class, 'Характеристики товаров'),
                 MenuItem::make(BundleResource::class, 'Комплекты'),
             ])->icon('shopping-bag'),
             MenuGroup::make('Фильтры')->setItems([

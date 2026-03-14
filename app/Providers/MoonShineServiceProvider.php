@@ -19,7 +19,6 @@ use App\MoonShine\Resources\Bundle\BundleResource;
 use App\MoonShine\Resources\BundleItem\BundleItemResource;
 use App\MoonShine\Resources\Order\OrderResource;
 use App\MoonShine\Resources\OrderItem\OrderItemResource;
-use App\MoonShine\Resources\ProductProperty\ProductPropertyResource;
 use App\MoonShine\Resources\Slide\SlideResource;
 use App\MoonShine\Resources\ProductAttributeOption\ProductAttributeOptionResource;
 
@@ -43,7 +42,6 @@ class MoonShineServiceProvider extends ServiceProvider
                 BundleItemResource::class,
                 OrderResource::class,
                 OrderItemResource::class,
-                ProductPropertyResource::class,
                 SlideResource::class,
                 ProductAttributeOptionResource::class,
             ])

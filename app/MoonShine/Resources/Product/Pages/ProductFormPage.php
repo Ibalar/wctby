@@ -6,11 +6,10 @@ namespace App\MoonShine\Resources\Product\Pages;
 
 use App\Models\AttributeOption;
 use App\MoonShine\Resources\Attribute\AttributeResource;
-use App\MoonShine\Resources\ProductAttributeOption\ProductAttributeOptionResource;
 use Illuminate\Support\Arr;
 use App\MoonShine\Resources\AttributeOption\AttributeOptionResource;
 use App\MoonShine\Resources\Category\CategoryResource;
-use App\MoonShine\Resources\ProductProperty\ProductPropertyResource;
+use App\MoonShine\Resources\ProductAttributeOption\ProductAttributeOptionResource;
 use Illuminate\Validation\Rule;
 use MoonShine\Laravel\Fields\Relationships\BelongsTo;
 use MoonShine\Laravel\Fields\Relationships\BelongsToMany;
@@ -179,16 +178,17 @@ class ProductFormPage extends FormPage
                             ->creatable()
                             ->removable(),  // позволяет удалять строки
 
-                        // RelationRepeater для свойств (ProductProperty)
-                        RelationRepeater::make('Свойства', 'properties', resource: ProductPropertyResource::class)
+                        // Json-поле для свойств (бывший ProductProperty)
+                        Json::make('Свойства', 'properties')
                             ->fields([
-                                ID::make(),
+                                Position::make(),
                                 Text::make('Название', 'name')->required(),
                                 Text::make('Значение', 'value')->required(),
                                 Number::make('Порядок', 'sort_order')->default(0),
                             ])
                             ->creatable()
-                            ->removable(),
+                            ->removable()
+                            ->nullable(),
                     ]),
                 ])->vertical(),
             ]),
