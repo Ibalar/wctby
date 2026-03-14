@@ -36,8 +36,8 @@ class OrderIndexPage extends IndexPage
         return [
             ID::make(),
             Text::make('Номер', 'number'),
-            Badge::make('Статус', 'status')
-                ->color(fn ($value): string => match ($value) {
+            Text::make('Статус', 'status')
+                ->badge(fn ($value): string => match ($value) {
                     'new' => 'blue',
                     'processing' => 'yellow',
                     'completed' => 'green',
