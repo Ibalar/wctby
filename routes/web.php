@@ -5,6 +5,7 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SocialAuthController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AddressController;
 use Illuminate\Support\Facades\Route;
 use UniSharp\LaravelFilemanager\Lfm;
 
@@ -57,4 +58,10 @@ Route::middleware('auth')->prefix('profile')->name('profile.')->group(function (
     Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password.update');
     Route::get('/social', [ProfileController::class, 'socialAccounts'])->name('social');
     Route::delete('/social/{provider}', [ProfileController::class, 'unlinkSocial'])->name('social.unlink');
+
+    Route::get('/addresses', [AddressController::class, 'index'])->name('addresses');
+    Route::post('/addresses', [AddressController::class, 'store'])->name('addresses.store');
+    Route::put('/addresses/{address}', [AddressController::class, 'update'])->name('addresses.update');
+    Route::delete('/addresses/{address}', [AddressController::class, 'destroy'])->name('addresses.destroy');
+    Route::post('/addresses/{address}/default', [AddressController::class, 'setDefault'])->name('addresses.default');
 });
