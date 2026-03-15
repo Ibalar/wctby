@@ -4,6 +4,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SocialAuthController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use UniSharp\LaravelFilemanager\Lfm;
 
@@ -43,4 +44,17 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::delete('/auth/{provider}/unlink', [SocialAuthController::class, 'unlink'])
         ->name('social.unlink');
+});
+
+Route::middleware('auth')->prefix('profile')->name('profile.')->group(function () {
+    Route::get('/', [ProfileController::class, 'index'])->name('index');
+    Route::get('/edit', [ProfileController::class, 'edit'])->name('edit');
+    Route::put('/', [ProfileController::class, 'update'])->name('update');
+    Route::delete('/avatar', [ProfileController::class, 'deleteAvatar'])->name('avatar.delete');
+    Route::get('/orders', [ProfileController::class, 'orders'])->name('orders');
+    Route::get('/orders/{order}', [ProfileController::class, 'orderShow'])->name('order');
+    Route::get('/security', [ProfileController::class, 'security'])->name('security');
+    Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password.update');
+    Route::get('/social', [ProfileController::class, 'socialAccounts'])->name('social');
+    Route::delete('/social/{provider}', [ProfileController::class, 'unlinkSocial'])->name('social.unlink');
 });
