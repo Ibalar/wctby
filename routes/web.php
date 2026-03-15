@@ -13,7 +13,7 @@ Route::prefix('laravel-filemanager')->group(function () {
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\HomeController;
 
-Route::get('/', [HomeController::class, 'index']);
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/catalog', [CategoryController::class, 'index'])->name('catalog.index');
 Route::get('/catalog/{slug}', [CategoryController::class, 'show'])->name('catalog.category');

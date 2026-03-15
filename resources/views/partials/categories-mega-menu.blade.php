@@ -24,7 +24,7 @@
                 </button>
 
                 <!-- Mega menu -->
-                <ul class="dropdown-menu dropdown-menu-static w-100 rounded-top-0 rounded-bottom-4 py-1 p-lg-1" style="--cz-dropdown-spacer: 0; --cz-dropdown-item-padding-y: .625rem; --cz-dropdown-item-spacer: 0">
+                <ul class="dropdown-menu {{ request()->routeIs('home') ? 'dropdown-menu-static' : '' }} w-100 rounded-top-0 rounded-bottom-4 py-1 p-lg-1" style="--cz-dropdown-spacer: 0; --cz-dropdown-item-padding-y: .625rem; --cz-dropdown-item-spacer: 0">
 
                     <!-- All Categories link for mobile -->
                     <li class="d-lg-none pt-2">
