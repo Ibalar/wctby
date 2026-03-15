@@ -6,20 +6,10 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
 class CreateNewUser implements CreatesNewUsers
 {
-    use PasswordValidationRules;
-
-    /**
-     * Validate and create a newly registered user.
-     *
-     * @param  array<string, string>  $input
-     *
-     * @throws ValidationException
-     */
     public function create(array $input): User
     {
         Validator::make($input, [
@@ -31,13 +21,19 @@ class CreateNewUser implements CreatesNewUsers
                 'max:255',
                 Rule::unique(User::class),
             ],
-            'password' => $this->passwordRules(),
+            'phone' => ['nullable', 'string', 'max:20', Rule::unique(User::class)],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'first_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['nullable', 'string', 'max:255'],
         ])->validate();
 
         return User::create([
             'name' => $input['name'],
             'email' => $input['email'],
+            'phone' => $input['phone'] ?? null,
             'password' => Hash::make($input['password']),
+            'first_name' => $input['first_name'] ?? null,
+            'last_name' => $input['last_name'] ?? null,
         ]);
     }
 }
