@@ -23,6 +23,7 @@ use App\MoonShine\Resources\Slide\SlideResource;
 use App\MoonShine\Resources\ProductAttributeOption\ProductAttributeOptionResource;
 use App\MoonShine\Resources\PaymentMethod\PaymentMethodResource;
 use App\MoonShine\Resources\DeliveryMethod\DeliveryMethodResource;
+use App\MoonShine\Resources\User\UserResource;
 
 class MoonShineServiceProvider extends ServiceProvider
 {
@@ -34,6 +35,7 @@ class MoonShineServiceProvider extends ServiceProvider
         $core
             ->resources([
                 MoonShineUserResource::class,
+                UserResource::class,
                 MoonShineUserRoleResource::class,
                 CategoryResource::class,
                 ProductResource::class,
