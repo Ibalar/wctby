@@ -35,7 +35,7 @@ class UserFormPage extends FormPage
                     Tab::make('Основное', [
                         ID::make(),
                         Text::make('Имя', 'name')->required(),
-                        Email::make('Email', 'email')->required()->unique(),
+                        Email::make('Email', 'email')->required(),
                         Text::make('Телефон', 'phone'),
                         Image::make('Аватар', 'avatar')
                             ->disk('public')

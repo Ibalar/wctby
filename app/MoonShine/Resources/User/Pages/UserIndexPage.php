@@ -6,6 +6,7 @@ namespace App\MoonShine\Resources\User\Pages;
 
 use App\MoonShine\Resources\User\UserResource;
 use MoonShine\Laravel\Pages\Crud\IndexPage;
+use MoonShine\UI\Components\Thumbnails;
 use MoonShine\UI\Fields\Date;
 use MoonShine\UI\Fields\DateRange;
 use MoonShine\UI\Fields\Email;
@@ -28,10 +29,11 @@ class UserIndexPage extends IndexPage
             Text::make('Имя', 'name')->sortable(),
             Email::make('Email', 'email')->sortable(),
             Text::make('Телефон', 'phone'),
-            Image::make('Аватар', 'avatar')
-                ->disk('public')
-                ->dir('avatars')
-                ->thumbnail('50', '50'),
+
+            Text::make('Аватар', 'avatar')
+                ->changePreview(function (?string $value, Text $field) {
+                    return Thumbnails::make($value);
+                }),
             Date::make('Дата регистрации', 'created_at')->sortable(),
         ];
     }
