@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\MoonShine\Resources\User\Pages;
 
+use App\MoonShine\Resources\Address\AddressResource;
 use App\MoonShine\Resources\User\UserResource;
 use MoonShine\Laravel\Fields\Relationships\RelationRepeater;
 use MoonShine\Laravel\Pages\Crud\FormPage;
@@ -62,7 +63,7 @@ class UserFormPage extends FormPage
                     ]),
 
                     Tab::make('Адреса', [
-                        RelationRepeater::make('Адреса', 'addresses')
+                        RelationRepeater::make('Адреса', 'addresses', resource: AddressResource::class)
                             ->fields([
                                 ID::make(),
                                 Select::make('Тип', 'type')

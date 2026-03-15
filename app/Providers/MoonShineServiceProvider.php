@@ -24,6 +24,7 @@ use App\MoonShine\Resources\ProductAttributeOption\ProductAttributeOptionResourc
 use App\MoonShine\Resources\PaymentMethod\PaymentMethodResource;
 use App\MoonShine\Resources\DeliveryMethod\DeliveryMethodResource;
 use App\MoonShine\Resources\User\UserResource;
+use App\MoonShine\Resources\Address\AddressResource;
 
 class MoonShineServiceProvider extends ServiceProvider
 {
@@ -36,6 +37,7 @@ class MoonShineServiceProvider extends ServiceProvider
             ->resources([
                 MoonShineUserResource::class,
                 UserResource::class,
+                AddressResource::class,
                 MoonShineUserRoleResource::class,
                 CategoryResource::class,
                 ProductResource::class,
