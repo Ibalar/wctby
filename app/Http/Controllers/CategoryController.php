@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
-use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
@@ -20,10 +19,13 @@ class CategoryController extends Controller
         return view('catalog.index', compact('categories'));
     }
 
-    // Для конкретной категории
     public function show($slug)
     {
-        $category = Category::with('children', 'products', 'parent.parent')
+        $category = Category::with(['children', 'products' => function ($query) {
+            $query->where('is_active', true)
+                ->with(['skus' => fn ($q) => $q->where('is_active', true)])
+                ->with('media');
+        }])
             ->where('slug', $slug)
             ->where('is_active', true)
             ->firstOrFail();
