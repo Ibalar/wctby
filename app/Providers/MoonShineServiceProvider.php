@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\MoonShine\Resources\SocialAccount\SocialAccountResource;
 use Illuminate\Support\ServiceProvider;
 use MoonShine\Contracts\Core\DependencyInjection\CoreContract;
 use MoonShine\Laravel\DependencyInjection\MoonShine;
@@ -38,6 +39,7 @@ class MoonShineServiceProvider extends ServiceProvider
                 MoonShineUserResource::class,
                 UserResource::class,
                 AddressResource::class,
+                SocialAccountResource::class,
                 MoonShineUserRoleResource::class,
                 CategoryResource::class,
                 ProductResource::class,

@@ -94,10 +94,21 @@
                     </button>
 
                     <!-- Account button visible on screens > 768px wide (md breakpoint) -->
-                    <a class="btn btn-icon btn-lg fs-lg btn-outline-secondary border-0 rounded-circle animate-shake d-none d-md-inline-flex" href="#">
-                        <i class="ci-user animate-target"></i>
-                        <span class="visually-hidden">Аккаунт</span>
-                    </a>
+                    @auth
+                        <a class="btn btn-icon btn-lg fs-lg btn-outline-secondary border-0 rounded-circle animate-shake d-none d-md-inline-flex"
+                           href="{{ route('profile.index') }}">
+                            <i class="ci-user animate-target"></i>
+                            <span class="visually-hidden">Аккаунт</span>
+                        </a>
+                    @endauth
+
+                    @guest
+                        <a class="btn btn-icon btn-lg fs-lg btn-outline-secondary border-0 rounded-circle animate-shake d-none d-md-inline-flex"
+                           href="{{ route('login') }}">
+                            <i class="ci-user animate-target"></i>
+                            <span class="visually-hidden">Войти</span>
+                        </a>
+                    @endguest
 
                     <!-- Wishlist button visible on screens > 768px wide (md breakpoint) -->
                     <a class="btn btn-icon btn-lg fs-lg btn-outline-secondary border-0 rounded-circle animate-pulse d-none d-md-inline-flex" href="#">
