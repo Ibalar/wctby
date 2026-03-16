@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\MoonShine\Resources\User\Pages;
 
 use App\MoonShine\Resources\Address\AddressResource;
+use App\MoonShine\Resources\Order\OrderResource;
+use App\MoonShine\Resources\SocialAccount\SocialAccountResource;
 use App\MoonShine\Resources\User\UserResource;
 use MoonShine\Laravel\Fields\Relationships\RelationRepeater;
 use MoonShine\Laravel\Pages\Crud\FormPage;
@@ -81,7 +83,7 @@ class UserFormPage extends FormPage
                     ]),
 
                     Tab::make('Соц. аккаунты', [
-                        RelationRepeater::make('Привязанные аккаунты', 'socialAccounts')
+                        RelationRepeater::make('Привязанные аккаунты', 'socialAccounts', resource: SocialAccountResource::class)
                             ->fields([
                                 ID::make(),
                                 Text::make('Провайдер', 'provider')->readonly(),
@@ -94,7 +96,7 @@ class UserFormPage extends FormPage
                     ]),
 
                     Tab::make('Заказы', [
-                        RelationRepeater::make('Заказы', 'orders')
+                        RelationRepeater::make('Заказы', 'orders', resource: OrderResource::class)
                             ->fields([
                                 ID::make(),
                                 Text::make('Номер', 'number')->readonly(),
