@@ -30,6 +30,8 @@
 
     <!-- Vendor styles -->
     <link rel="stylesheet" href="{{ asset('assets/vendor/swiper/swiper-bundle.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/vendor/choices/choices.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/vendor/nouislider/nouislider.min.css') }}">
 
     <!-- Bootstrap + Theme styles -->
     <link rel="preload" href="{{ asset('assets/css/theme.css') }}" as="style">
@@ -69,6 +71,8 @@
 
     <!-- Vendor scripts -->
     <script src="{{ asset('assets/vendor/swiper/swiper-bundle.min.js') }}"></script>
+    <script src="{{ asset('assets/vendor/choices/choices.min.js') }}"></script>
+    <script src="{{ asset('assets/vendor/nouislider/nouislider.min.js') }}"></script>
 
     <!-- Bootstrap + Theme scripts -->
     <script src="{{ asset('assets/js/theme.min.js') }}"></script>
