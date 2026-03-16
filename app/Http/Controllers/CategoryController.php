@@ -23,11 +23,50 @@ class CategoryController extends Controller
     // Для конкретной категории
     public function show($slug)
     {
-        $category = Category::with('children', 'products')
+        $category = Category::with('children', 'products', 'parent.parent')
             ->where('slug', $slug)
             ->where('is_active', true)
             ->firstOrFail();
 
-        return view('catalog.category', compact('category'));
+        $breadcrumbs = $this->buildBreadcrumbs($category);
+
+        return view('catalog.category', compact('category', 'breadcrumbs'));
+    }
+
+    protected function buildBreadcrumbs(Category $category): array
+    {
+        $breadcrumbs = [
+            ['label' => 'Главная', 'url' => route('home')],
+            ['label' => 'Каталог', 'url' => route('catalog.index')],
+        ];
+
+        $ancestors = $this->getAncestors($category);
+
+        foreach ($ancestors as $ancestor) {
+            $breadcrumbs[] = [
+                'label' => $ancestor->name,
+                'url' => route('catalog.category', $ancestor->slug),
+            ];
+        }
+
+        $breadcrumbs[] = [
+            'label' => $category->name,
+            'url' => null,
+        ];
+
+        return $breadcrumbs;
+    }
+
+    protected function getAncestors(Category $category): array
+    {
+        $ancestors = [];
+        $parent = $category->parent;
+
+        while ($parent) {
+            array_unshift($ancestors, $parent);
+            $parent = $parent->parent;
+        }
+
+        return $ancestors;
     }
 }
