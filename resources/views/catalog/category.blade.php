@@ -4,17 +4,11 @@
 
 @section('content')
 
-    <!-- Breadcrumb -->
-    <nav class="container pt-3 my-3 my-md-4" aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/">Home</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Catalog with sidebar filters</li>
-        </ol>
-    </nav>
-
+    {{-- Хлебные крошки --}}
+    <x-breadcrumbs :items="$breadcrumbs" />
 
     <!-- Page title -->
-    <h1 class="h3 container mb-4">Shop catalog</h1>
+    <h1 class="h3 container mb-4">{{ $category->name }}</h1>
 
     <!-- Selected filters + Sorting -->
     <section class="container mb-4">
