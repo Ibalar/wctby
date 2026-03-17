@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Illuminate\Support\Facades\Storage;
 
 class Category extends Model implements HasMedia
 {
@@ -20,6 +21,7 @@ class Category extends Model implements HasMedia
         'promo_active',
         'promo_title',
         'promo_subtitle',
+        'promo_image',
         'promo_button_text',
         'promo_link',
         'promo_product_id',
@@ -119,7 +121,12 @@ class Category extends Model implements HasMedia
             'badge_color' => $this->promo_badge_color,
             'old_price' => $this->promo_old_price,
             'new_price' => $this->promo_new_price,
-            'image' => $this->getFirstMediaUrl('promo_image'),
+            // Используем поле promo_image из БД
+            'image' => $this->promo_image
+                ? (str_starts_with($this->promo_image, 'http')
+                    ? $this->promo_image
+                    : Storage::url($this->promo_image))
+                : null,
         ];
 
         // Определяем ссылку
