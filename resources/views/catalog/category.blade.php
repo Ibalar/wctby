@@ -405,22 +405,46 @@
             // Ползунок цены
             const priceSlider = document.querySelector('.range-slider');
             if (priceSlider) {
+                const config = JSON.parse(priceSlider.dataset.rangeSlider);
+                const sliderUi = priceSlider.querySelector('.range-slider-ui');
                 const minInput = priceSlider.querySelector('[data-range-slider-min]');
                 const maxInput = priceSlider.querySelector('[data-range-slider-max]');
 
-                // Для твоего плагина: слушаем событие input
-                [minInput, maxInput].forEach(input => {
-                    input.addEventListener('input', () => {
-                        loadProducts();
-                    });
+                // Initialize noUiSlider
+                noUiSlider.create(sliderUi, {
+                    start: [config.startMin, config.startMax],
+                    connect: true,
+                    range: {
+                        'min': config.min,
+                        'max': config.max
+                    },
+                    step: config.step,
+                    tooltips: {
+                        to: function (value) {
+                            return Math.round(value) + config.tooltipPostfix;
+                        },
+                        from: function (value) {
+                            return Number(value.replace(config.tooltipPostfix, ''));
+                        }
+                    }
                 });
 
-                // Если используешь плагин типа noUiSlider
-                if (priceSlider.noUiSlider) {
-                    priceSlider.noUiSlider.on('update', function () {
-                        loadProducts();
-                    });
-                }
+                // On slider update, sync inputs and load products
+                sliderUi.noUiSlider.on('update', function (values, handle) {
+                    const min = Math.round(values[0]);
+                    const max = Math.round(values[1]);
+                    minInput.value = min;
+                    maxInput.value = max;
+                    loadProducts();
+                });
+
+                // On input change, sync slider and load products
+                minInput.addEventListener('input', function () {
+                    sliderUi.noUiSlider.set([this.value, null]);
+                });
+                maxInput.addEventListener('input', function () {
+                    sliderUi.noUiSlider.set([null, this.value]);
+                });
             }
 
             // AJAX пагинация
