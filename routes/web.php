@@ -17,8 +17,16 @@ Route::prefix('laravel-filemanager')->group(function () {
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-Route::get('/catalog', [CategoryController::class, 'index'])->name('catalog.index');
-Route::get('/catalog/{slug}', [CategoryController::class, 'show'])->name('catalog.category');
+Route::prefix('catalog')->group(function () {
+
+    Route::get('/', [CategoryController::class, 'index'])->name('catalog.index');
+
+    Route::get('{slug}/filter', [CategoryController::class, 'filter'])
+        ->name('catalog.filter');
+
+    Route::get('{slug}', [CategoryController::class, 'show'])
+        ->name('catalog.category');
+});
 
 Route::get('/product/{slug}', [ProductController::class, 'show'])->name('catalog.product');
 

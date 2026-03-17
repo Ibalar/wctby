@@ -4916,6 +4916,7 @@ fieldset:disabled .btn {
     text-align: center;
     vertical-align: baseline;
     white-space: nowrap;
+    z-index: 1;
 }
 .badge:empty {
     display: none;

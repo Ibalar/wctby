@@ -33,9 +33,12 @@
                             <i class="ci-close fs-sm ms-n1 me-1"></i>
                             $340 - $1,250
                         </button>
-                        <button type="button" class="btn btn-sm btn-secondary bg-transparent border-0 text-decoration-underline px-0 ms-2">
-                            Clear all
-                        </button>
+                        @if(request('status'))
+                            <a href="{{ route('catalog.category', $category->slug) }}"
+                               class="btn btn-sm btn-secondary bg-transparent border-0 text-decoration-underline px-0 ms-2">
+                                Очистить
+                            </a>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -66,21 +69,23 @@
             <aside class="col-lg-3">
                 <div class="offcanvas-lg offcanvas-start" id="filterSidebar">
                     <div class="offcanvas-header py-3">
-                        <h5 class="offcanvas-title">Filter and sort</h5>
+                        <h5 class="offcanvas-title">Фильтры</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#filterSidebar" aria-label="Close"></button>
                     </div>
                     <div class="offcanvas-body flex-column pt-2 py-lg-0">
 
                         <!-- Status -->
                         <div class="w-100 border rounded p-3 p-xl-4 mb-3 mb-xl-4">
-                            <h4 class="h6">Status</h4>
+                            <h4 class="h6">Статус</h4>
+
                             <div class="d-flex flex-wrap gap-2">
-                                <button type="button" class="btn btn-sm btn-outline-secondary">
-                                    <i class="ci-percent fs-sm me-1 ms-n1"></i>
-                                    Sale
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-secondary">Same Day Delivery</button>
-                                <button type="button" class="btn btn-sm btn-outline-secondary">Available to Order</button>
+                                @foreach($allFlags as $flag)
+                                    <a href="{{ request()->fullUrlWithQuery(['status' => $flag]) }}"
+                                       class="btn btn-sm {{ request('status') == $flag ? 'btn-primary' : 'btn-outline-secondary' }}">
+
+                                        {{ $flag }}
+                                    </a>
+                                @endforeach
                             </div>
                         </div>
 
@@ -110,18 +115,30 @@
 
                         <!-- Price range -->
                         <div class="w-100 border rounded p-3 p-xl-4 mb-3 mb-xl-4">
-                            <h4 class="h6 mb-2" id="slider-label">Price</h4>
-                            <div class="range-slider" data-range-slider='{"startMin": 340, "startMax": 1250, "min": 0, "max": 1600, "step": 1, "tooltipPrefix": "$"}' aria-labelledby="slider-label">
+                            <h4 class="h6 mb-2" id="slider-label">Стоимость</h4>
+                            <div class="range-slider" aria-labelledby="slider-label"
+                                 data-range-slider='{
+                                    "startMin": {{ $priceRange->min_price ?? 0 }},
+                                    "startMax": {{ $priceRange->max_price ?? 1000 }},
+                                    "min": {{ $priceRange->min_price ?? 0 }},
+                                    "max": {{ $priceRange->max_price ?? 1000 }},
+                                    "step": 1,
+                                    "tooltipPostfix": "$"
+                                 }'>
                                 <div class="range-slider-ui"></div>
-                                <div class="d-flex align-items-center">
+                                <div class="d-flex align-items-center mt-2">
                                     <div class="position-relative w-50">
-                                        <i class="ci-dollar-sign position-absolute top-50 start-0 translate-middle-y ms-3"></i>
-                                        <input type="number" class="form-control form-icon-start" min="0" data-range-slider-min>
+                                        <input type="number" class="form-control form-icon-end" min="0"
+                                               data-range-slider-min
+                                               value="{{ request('price_min', $priceRange->min_price ?? 0) }}">
+                                        <span class="position-absolute top-50 end-0 translate-middle-y me-3"> р.</span>
                                     </div>
                                     <i class="ci-minus text-body-emphasis mx-2"></i>
                                     <div class="position-relative w-50">
-                                        <i class="ci-dollar-sign position-absolute top-50 start-0 translate-middle-y ms-3"></i>
-                                        <input type="number" class="form-control form-icon-start" min="0" data-range-slider-max>
+                                        <input type="number" class="form-control form-icon-end" min="0"
+                                               data-range-slider-max
+                                               value="{{ request('price_max', $priceRange->max_price ?? 1000) }}">
+                                        <span class="position-absolute top-50 end-0 translate-middle-y me-3"> р.</span>
                                     </div>
                                 </div>
                             </div>
@@ -330,25 +347,94 @@
 
 
             <!-- Product grid -->
-            <div class="col-lg-9">
-                @if($products->isEmpty())
-                    <div class="alert alert-info">В этой категории пока нет товаров</div>
-                @else
-                    <div class="row row-cols-2 row-cols-md-3 g-4 pb-3 mb-3">
-                        @foreach($products as $product)
-                            <x-product-card :product="$product" />
-                        @endforeach
-                    </div>
-
-                    @if($products->hasPages())
-                        <nav class="d-flex justify-content-center" aria-label="Pagination">
-                            {{ $products->links() }}
-                        </nav>
-                    @endif
-                @endif
+            <div id="products-container" class="col-lg-9">
+                @include('catalog.partials.products', ['products' => $products])
             </div>
         </div>
     </section>
 
 
 @endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const container = document.getElementById('products-container');
+
+            function getFilters() {
+                let params = new URLSearchParams();
+
+                // Статусы
+                document.querySelectorAll('input[name="status[]"]:checked')
+                    .forEach(el => params.append('status[]', el.value));
+
+                // Сортировка
+                let sort = document.querySelector('[name="sort"]')?.value;
+                if (sort) params.append('sort', sort);
+
+                // Цена
+                const priceMinInput = document.querySelector('[data-range-slider-min]');
+                const priceMaxInput = document.querySelector('[data-range-slider-max]');
+                if (priceMinInput?.value) params.append('price_min', priceMinInput.value);
+                if (priceMaxInput?.value) params.append('price_max', priceMaxInput.value);
+
+                return params.toString();
+            }
+
+            function loadProducts(url = null) {
+                const baseUrl = "{{ route('catalog.filter', $category->slug) }}";
+                const query = getFilters();
+
+                fetch((url || baseUrl) + '?' + query)
+                    .then(res => res.text())
+                    .then(html => {
+                        container.innerHTML = html;
+                        attachPagination();
+                    });
+            }
+
+            // Автофильтр статусов
+            document.querySelectorAll('input[name="status[]"]').forEach(el => {
+                el.addEventListener('change', () => loadProducts());
+            });
+
+            // Сортировка
+            document.querySelector('[name="sort"]')?.addEventListener('change', () => loadProducts());
+
+            // Ползунок цены
+            const priceSlider = document.querySelector('.range-slider');
+            if (priceSlider) {
+                const minInput = priceSlider.querySelector('[data-range-slider-min]');
+                const maxInput = priceSlider.querySelector('[data-range-slider-max]');
+
+                // Для твоего плагина: слушаем событие input
+                [minInput, maxInput].forEach(input => {
+                    input.addEventListener('input', () => {
+                        loadProducts();
+                    });
+                });
+
+                // Если используешь плагин типа noUiSlider
+                if (priceSlider.noUiSlider) {
+                    priceSlider.noUiSlider.on('update', function () {
+                        loadProducts();
+                    });
+                }
+            }
+
+            // AJAX пагинация
+            function attachPagination() {
+                document.querySelectorAll('#products-container .pagination a')
+                    .forEach(link => {
+                        link.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            loadProducts(this.href);
+                        });
+                    });
+            }
+
+            attachPagination();
+        });
+    </script>
+@endpush
