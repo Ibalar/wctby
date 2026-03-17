@@ -403,48 +403,56 @@
             document.querySelector('[name="sort"]')?.addEventListener('change', () => loadProducts());
 
             // Ползунок цены
-            const priceSlider = document.querySelector('.range-slider');
-            if (priceSlider) {
-                const config = JSON.parse(priceSlider.dataset.rangeSlider);
-                const sliderUi = priceSlider.querySelector('.range-slider-ui');
-                const minInput = priceSlider.querySelector('[data-range-slider-min]');
-                const maxInput = priceSlider.querySelector('[data-range-slider-max]');
+            const priceSliderWrapper = document.querySelector('.range-slider');
+            if (priceSliderWrapper) {
+                const sliderElement = priceSliderWrapper.querySelector('.range-slider-ui');
+                const minInput = priceSliderWrapper.querySelector('[data-range-slider-min]');
+                const maxInput = priceSliderWrapper.querySelector('[data-range-slider-max]');
+
+                // Parse config from data attribute
+                const sliderConfig = JSON.parse(priceSliderWrapper.dataset.rangeSlider);
 
                 // Initialize noUiSlider
-                noUiSlider.create(sliderUi, {
-                    start: [config.startMin, config.startMax],
-                    connect: true,
-                    range: {
-                        'min': config.min,
-                        'max': config.max
-                    },
-                    step: config.step,
-                    tooltips: {
-                        to: function (value) {
-                            return Math.round(value) + config.tooltipPostfix;
+                if (sliderElement && typeof noUiSlider !== 'undefined') {
+                    noUiSlider.create(sliderElement, {
+                        start: [sliderConfig.startMin, sliderConfig.startMax],
+                        connect: true,
+                        range: {
+                            min: parseInt(sliderConfig.min),
+                            max: parseInt(sliderConfig.max)
                         },
-                        from: function (value) {
-                            return Number(value.replace(config.tooltipPostfix, ''));
+                        step: parseInt(sliderConfig.step),
+                        format: {
+                            to: function (value) {
+                                return parseInt(value, 10);
+                            },
+                            from: function (value) {
+                                return Number(value);
+                            }
                         }
-                    }
-                });
+                    });
 
-                // On slider update, sync inputs and load products
-                sliderUi.noUiSlider.on('update', function (values, handle) {
-                    const min = Math.round(values[0]);
-                    const max = Math.round(values[1]);
-                    minInput.value = min;
-                    maxInput.value = max;
-                    loadProducts();
-                });
+                    const slider = sliderElement.noUiSlider;
 
-                // On input change, sync slider and load products
-                minInput.addEventListener('input', function () {
-                    sliderUi.noUiSlider.set([this.value, null]);
-                });
-                maxInput.addEventListener('input', function () {
-                    sliderUi.noUiSlider.set([null, this.value]);
-                });
+                    // On slider update - update inputs and trigger AJAX
+                    slider.on('update', function (values, handle) {
+                        if (handle === 0) {
+                            minInput.value = values[0];
+                        } else {
+                            maxInput.value = values[1];
+                        }
+                        loadProducts();
+                    });
+
+                    // On input change - update slider and trigger AJAX
+                    minInput.addEventListener('input', function () {
+                        slider.set([this.value, null]);
+                    });
+
+                    maxInput.addEventListener('input', function () {
+                        slider.set([null, this.value]);
+                    });
+                }
             }
 
             // AJAX пагинация
