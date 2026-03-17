@@ -44,6 +44,47 @@ class Category extends Model implements HasMedia
         return $this->hasMany(Category::class, 'parent_id');
     }
 
+    /**
+     * Получить всех потомков рекурсивно (включая текущую категорию)
+     */
+    public function descendants(): \Illuminate\Support\Collection
+    {
+        $descendants = collect([$this]);
+
+        foreach ($this->children as $child) {
+            $descendants = $descendants->merge($child->descendants());
+        }
+
+        return $descendants;
+    }
+
+    /**
+     * Получить ID всех потомков (включая текущую категорию)
+     */
+    public function getDescendantIds(): array
+    {
+        return $this->descendants()->pluck('id')->toArray();
+    }
+
+    /**
+     * Получить все товары из текущей категории и всех потомков
+     */
+    public function allProducts()
+    {
+        $categoryIds = $this->getDescendantIds();
+
+        return Product::whereIn('category_id', $categoryIds)
+            ->where('is_active', true);
+    }
+
+    /**
+     * Scope для загрузки потомков
+     */
+    public function scopeWithDescendants($query)
+    {
+        return $query->with('children.children');
+    }
+
     public function products()
     {
         return $this->hasMany(Product::class);
