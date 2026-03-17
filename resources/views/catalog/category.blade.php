@@ -40,23 +40,18 @@
                 </div>
             </div>
             <div class="col-lg-3 mt-3 mt-lg-0">
-                <div class="d-flex align-items-center justify-content-lg-end text-nowrap">
-                    <label class="form-label fw-semibold mb-0 me-2">Sort by:</label>
+                <form method="GET" class="d-flex align-items-center justify-content-lg-end text-nowrap">
+                    <label class="form-label fw-semibold mb-0 me-2">Сортировать:</label>
                     <div style="width: 190px">
-                        <select class="form-select border-0 rounded-0 px-1" data-select='{
-                  "removeItemButton": false,
-                  "classNames": {
-                    "containerInner": ["form-select", "border-0", "rounded-0", "px-1"]
-                  }
-                }'>
-                            <option value="Relevance">Relevance</option>
-                            <option value="Popularity">Popularity</option>
-                            <option value="Price: Low to High">Price: Low to High</option>
-                            <option value="Price: High to Low">Price: High to Low</option>
-                            <option value="Newest Arrivals">Newest Arrivals</option>
+                        <select name="sort" class="form-select border-0 rounded-0 px-1" onchange="this.form.submit()">
+                            <option value="price_asc" {{ request('sort') == 'price_asc' ? 'selected' : '' }}>Сначала дешевле</option>
+                            <option value="price_desc" {{ request('sort') == 'price_desc' ? 'selected' : '' }}>Сначала дороже</option>
+                            <option value="name_asc" {{ request('sort') == 'name_asc' ? 'selected' : '' }}>Название: А-Я</option>
+                            <option value="name_desc" {{ request('sort') == 'name_desc' ? 'selected' : '' }}>Название: Я-А</option>
+                            <option value="newest" {{ request('sort') == 'newest' ? 'selected' : '' }}>По новизне</option>
                         </select>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
         <hr class="d-lg-none my-3">

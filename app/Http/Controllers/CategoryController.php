@@ -27,35 +27,68 @@ class CategoryController extends Controller
      */
     public function show($slug, BreadcrumbService $breadcrumbsService)
     {
+        // 1️⃣ Загружаем категорию с детьми (до 3 уровней)
         $category = Category::with('children.children.children')
             ->where('slug', $slug)
             ->where('is_active', true)
             ->firstOrFail();
 
-        $products = $category->allProducts()
-            ->with(['skus' => fn ($q) => $q->where('is_active', true)])
-            ->with('media')
-            ->paginate(12);
+        // 2️⃣ Получаем сортировку из GET-параметра
+        $sort = request('sort');
 
+        // 3️⃣ Базовый запрос товаров категории
+        $productsQuery = $category->allProducts()
+            ->with(['skus' => fn($q) => $q->where('is_active', true)])
+            ->with('media')
+            ->where('products.is_active', true)
+            ->withMin(['skus' => fn($q) => $q->where('is_active', true)], 'price'); // minimal SKU price
+
+        // 4️⃣ Применяем сортировку
+        switch ($sort) {
+            case 'price_asc':
+                $productsQuery->orderByRaw('COALESCE(skus_min_price, products.base_price) ASC');
+                break;
+            case 'price_desc':
+                $productsQuery->orderByRaw('COALESCE(skus_min_price, products.base_price) DESC');
+                break;
+            case 'name_asc':
+                $productsQuery->orderBy('products.name', 'asc');
+                break;
+            case 'name_desc':
+                $productsQuery->orderBy('products.name', 'desc');
+                break;
+            case 'newest':
+                $productsQuery->orderBy('products.created_at', 'desc');
+                break;
+            default:
+                $productsQuery->orderBy('products.name', 'asc');
+        }
+
+        // 5️⃣ Получаем товары с пагинацией
+        $products = $productsQuery->paginate(12)->withQueryString();
+
+        // 6️⃣ Хлебные крошки через сервис
         $breadcrumbs = $breadcrumbsService->forCategory($category);
 
-        // Получаем конечные категории
+        // 7️⃣ Получаем конечные категории (leaf) для фильтров
         $leafCategories = $this->getLeafCategories($category);
         $leafIds = $leafCategories->pluck('id');
 
-        // Подсчёт товаров одним запросом
-        $productsCount = DB::table('products')
+        // 8️⃣ Подсчёт товаров в leaf-категориях одним SQL
+        $productsCount = \DB::table('products')
             ->selectRaw('category_id, COUNT(*) as total')
             ->whereIn('category_id', $leafIds)
+            ->where('products.is_active', true)
             ->groupBy('category_id')
             ->pluck('total', 'category_id');
 
-        // Присваиваем products_count каждой категории
+        // 9️⃣ Присваиваем products_count каждой категории
         $leafCategories = $leafCategories->map(function ($cat) use ($productsCount) {
             $cat->products_count = $productsCount[$cat->id] ?? 0;
             return $cat;
         });
 
+        // 🔟 Возвращаем в вид
         return view('catalog.category', compact('category', 'products', 'breadcrumbs', 'leafCategories'));
     }
 
