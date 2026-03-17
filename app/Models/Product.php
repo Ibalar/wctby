@@ -58,4 +58,5 @@ class Product extends Model implements HasMedia
             ->useDisk('public')
             ->singleFile(false);
     }
+
 }

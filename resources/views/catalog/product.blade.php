@@ -10,181 +10,74 @@
 
 
     <!-- Gallery + Product options -->
-    <section class="container pb-5 mb-1 mb-sm-2 mb-md-3 mb-lg-4 mb-xl-5">
-        <div class="row">
+    <section class="container pt-md-4 pb-5 mt-md-2 mt-lg-3 mb-2 mb-sm-3 mb-lg-4 mb-xl-5">
+        <div class="row align-items-start">
 
             <!-- Product gallery -->
-            <div class="col-md-6">
+            <div class="col-md-6 col-lg-7 sticky-md-top z-1 mb-4 mb-md-0" style="margin-top: -120px">
+                <div class="d-flex" style="padding-top: 120px">
 
-                <!-- Preview (Large image) -->
-                <div class="swiper" data-swiper='{
-              "loop": true,
-              "navigation": {
-                "prevEl": ".btn-prev",
-                "nextEl": ".btn-next"
-              },
-              "thumbs": {
-                "swiper": "#thumbs"
-              }
-            }'>
-                    <div class="swiper-wrapper">
-                        <div class="swiper-slide">
-                            <div class="ratio ratio-1x1">
-                                <img src="assets/img/shop/electronics/product/gallery/01.png" data-zoom="assets/img/shop/electronics/product/gallery/01.png" data-zoom-options='{
-                      "paneSelector": "#zoomPane",
-                      "inlinePane": 768,
-                      "hoverDelay": 500,
-                      "touchDisable": true
-                    }' alt="Preview">
+                    @if(!empty($product->images))
+                        <!-- Thumbnails -->
+                        <div class="swiper swiper-load swiper-thumbs d-none d-lg-block w-100 me-xl-3" id="thumbs" data-swiper='{
+                        "direction": "vertical",
+                        "spaceBetween": 12,
+                        "slidesPerView": 4,
+                        "watchSlidesProgress": true}' style="max-width: 96px; height: 420px;">
+                            <div class="swiper-wrapper flex-column">
+                                @foreach($product->images ?? [] as $image)
+                                    <div class="swiper-slide swiper-thumb">
+                                        <div class="ratio ratio-1x1" style="max-width: 94px">
+                                            <img src="{{ asset('storage/' . $image) }}"
+                                                 class="swiper-thumb-img"
+                                                 alt="{{ $product->name }}">
+                                        </div>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
-                        <div class="swiper-slide">
-                            <div class="ratio ratio-1x1">
-                                <img src="assets/img/shop/electronics/product/gallery/02.png" data-zoom="assets/img/shop/electronics/product/gallery/02.png" data-zoom-options='{
-                      "paneSelector": "#zoomPane",
-                      "inlinePane": 768,
-                      "hoverDelay": 500,
-                      "touchDisable": true
-                    }' alt="Preview">
-                            </div>
-                        </div>
-                        <div class="swiper-slide">
-                            <div class="ratio ratio-1x1">
-                                <img src="assets/img/shop/electronics/product/gallery/03.png" data-zoom="assets/img/shop/electronics/product/gallery/03.png" data-zoom-options='{
-                      "paneSelector": "#zoomPane",
-                      "inlinePane": 768,
-                      "hoverDelay": 500,
-                      "touchDisable": true
-                    }' alt="Preview">
-                            </div>
-                        </div>
-                        <div class="swiper-slide">
-                            <div class="ratio ratio-1x1">
-                                <img src="assets/img/shop/electronics/product/gallery/04.png" data-zoom="assets/img/shop/electronics/product/gallery/04.png" data-zoom-options='{
-                      "paneSelector": "#zoomPane",
-                      "inlinePane": 768,
-                      "hoverDelay": 500,
-                      "touchDisable": true
-                    }' alt="Preview">
-                            </div>
-                        </div>
-                        <div class="swiper-slide">
-                            <div class="ratio ratio-1x1">
-                                <img src="assets/img/shop/electronics/product/gallery/05.png" data-zoom="assets/img/shop/electronics/product/gallery/05.png" data-zoom-options='{
-                      "paneSelector": "#zoomPane",
-                      "inlinePane": 768,
-                      "hoverDelay": 500,
-                      "touchDisable": true
-                    }' alt="Preview">
-                            </div>
-                        </div>
-                        <div class="swiper-slide">
-                            <div class="ratio ratio-1x1">
-                                <img src="assets/img/shop/electronics/product/gallery/06.png" data-zoom="assets/img/shop/electronics/product/gallery/06.png" data-zoom-options='{
-                      "paneSelector": "#zoomPane",
-                      "inlinePane": 768,
-                      "hoverDelay": 500,
-                      "touchDisable": true
-                    }' alt="Preview">
-                            </div>
-                        </div>
-                        <div class="swiper-slide">
-                            <div class="ratio ratio-1x1">
-                                <img src="assets/img/shop/electronics/product/gallery/07.png" data-zoom="assets/img/shop/electronics/product/gallery/07.png" data-zoom-options='{
-                      "paneSelector": "#zoomPane",
-                      "inlinePane": 768,
-                      "hoverDelay": 500,
-                      "touchDisable": true
-                    }' alt="Preview">
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Prev button -->
-                    <div class="position-absolute top-50 start-0 z-2 translate-middle-y ms-sm-2 ms-lg-3">
-                        <button type="button" class="btn btn-prev btn-icon btn-outline-secondary bg-body rounded-circle animate-slide-start" aria-label="Prev">
-                            <i class="ci-chevron-left fs-lg animate-target"></i>
-                        </button>
-                    </div>
+                        <!-- Preview (Large image) -->
+                        <div class="swiper w-100" data-swiper='{
+                        "loop": false,
+                        "thumbs": {
+                          "swiper": "#thumbs"
+                        },
+                        "pagination": {
+                          "el": ".swiper-pagination",
+                          "clickable": true
+                        }
+                      }'>
+                            <div class="swiper-wrapper">
+                                @foreach($product->images ?? [] as $image)
+                                    <div class="swiper-slide">
+                                        <a class="ratio ratio-1x1 d-block cursor-zoom-in"
+                                           href="{{ asset('storage/' . $image) }}"
+                                           data-glightbox
+                                           data-gallery="product-gallery">
 
-                    <!-- Next button -->
-                    <div class="position-absolute top-50 end-0 z-2 translate-middle-y me-sm-2 me-lg-3">
-                        <button type="button" class="btn btn-next btn-icon btn-outline-secondary bg-body rounded-circle animate-slide-end" aria-label="Next">
-                            <i class="ci-chevron-right fs-lg animate-target"></i>
-                        </button>
-                    </div>
-                </div>
+                                            <img src="{{ asset('storage/' . $image) }}"
+                                                 loading="lazy"
+                                                 alt="{{ $product->name }}">
+                                        </a>
+                                    </div>
+                                @endforeach
+                            </div>
 
-                <!-- Thumbnails -->
-                <div class="swiper swiper-load swiper-thumbs pt-2 mt-1" id="thumbs" data-swiper='{
-              "loop": true,
-              "spaceBetween": 12,
-              "slidesPerView": 3,
-              "watchSlidesProgress": true,
-              "breakpoints": {
-                "340": {
-                  "slidesPerView": 4
-                },
-                "500": {
-                  "slidesPerView": 5
-                },
-                "600": {
-                  "slidesPerView": 6
-                },
-                "768": {
-                  "slidesPerView": 4
-                },
-                "992": {
-                  "slidesPerView": 5
-                },
-                "1200": {
-                  "slidesPerView": 6
-                }
-              }
-            }'>
-                    <div class="swiper-wrapper">
-                        <div class="swiper-slide swiper-thumb">
-                            <div class="ratio ratio-1x1" style="max-width: 94px">
-                                <img src="assets/img/shop/electronics/product/gallery/th01.png" class="swiper-thumb-img" alt="Thumbnail">
-                            </div>
+                            <!-- Slider pagination (Bullets) visible on screens > 991px wide (lg breakpoint) -->
+                            <div class="swiper-pagination mb-n3 d-lg-none"></div>
                         </div>
-                        <div class="swiper-slide swiper-thumb">
-                            <div class="ratio ratio-1x1" style="max-width: 94px">
-                                <img src="assets/img/shop/electronics/product/gallery/th02.png" class="swiper-thumb-img" alt="Thumbnail">
-                            </div>
-                        </div>
-                        <div class="swiper-slide swiper-thumb">
-                            <div class="ratio ratio-1x1" style="max-width: 94px">
-                                <img src="assets/img/shop/electronics/product/gallery/th03.png" class="swiper-thumb-img" alt="Thumbnail">
-                            </div>
-                        </div>
-                        <div class="swiper-slide swiper-thumb">
-                            <div class="ratio ratio-1x1" style="max-width: 94px">
-                                <img src="assets/img/shop/electronics/product/gallery/th04.png" class="swiper-thumb-img" alt="Thumbnail">
-                            </div>
-                        </div>
-                        <div class="swiper-slide swiper-thumb">
-                            <div class="ratio ratio-1x1" style="max-width: 94px">
-                                <img src="assets/img/shop/electronics/product/gallery/th05.png" class="swiper-thumb-img" alt="Thumbnail">
-                            </div>
-                        </div>
-                        <div class="swiper-slide swiper-thumb">
-                            <div class="ratio ratio-1x1" style="max-width: 94px">
-                                <img src="assets/img/shop/electronics/product/gallery/th06.png" class="swiper-thumb-img" alt="Thumbnail">
-                            </div>
-                        </div>
-                        <div class="swiper-slide swiper-thumb">
-                            <div class="ratio ratio-1x1" style="max-width: 94px">
-                                <img src="assets/img/shop/electronics/product/gallery/th07.png" class="swiper-thumb-img" alt="Thumbnail">
-                            </div>
-                        </div>
-                    </div>
+                    @else
+                        <img src="/images/no-image.jpg" alt="No image">
+                    @endif
+
+
                 </div>
             </div>
 
 
             <!-- Product options -->
-            <div class="col-md-6 col-xl-5 offset-xl-1 pt-4">
+            <div class="col-md-6 col-lg-5 position-relative">
                 <div class="ps-md-4 ps-xl-0">
                     <div class="position-relative" id="zoomPane">
 
