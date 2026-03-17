@@ -2,7 +2,8 @@
 
 @section('content')
 
-
+    {{-- Хлебные крошки --}}
+    <x-breadcrumbs :items="$breadcrumbs" />
 
     <!-- Page title -->
     <h1 class="h3 container mb-4">Apple iPhone 14 Plus 128GB Blue</h1>
@@ -14,8 +15,8 @@
         <div class="row align-items-start">
 
             <!-- Product gallery -->
-            <div class="col-md-6 col-lg-7 sticky-md-top z-1 mb-4 mb-md-0" style="margin-top: -120px">
-                <div class="d-flex" style="padding-top: 120px">
+            <div class="col-md-6 col-lg-7 sticky-md-top z-1 mb-4 mb-md-0">
+                <div class="d-flex">
 
                     @if(!empty($product->images))
                         <!-- Thumbnails -->
@@ -65,10 +66,10 @@
                             </div>
 
                             <!-- Slider pagination (Bullets) visible on screens > 991px wide (lg breakpoint) -->
-                            <div class="swiper-pagination mb-n3 d-lg-none"></div>
+                            <div class="swiper-pagination mb-n4 d-lg-none"></div>
                         </div>
                     @else
-                        <img src="/images/no-image.jpg" alt="No image">
+                        <img src="{{ asset('assets/images/no-image.jpg') }}" alt="No image">
                     @endif
 
 
