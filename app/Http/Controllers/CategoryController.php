@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Services\BreadcrumbService;
+use Illuminate\Support\Facades\DB;
 
 class CategoryController extends Controller
 {
@@ -23,9 +25,9 @@ class CategoryController extends Controller
     /**
      * Для конкретной категории
      */
-    public function show($slug)
+    public function show($slug, BreadcrumbService $breadcrumbsService)
     {
-        $category = Category::with('children')
+        $category = Category::with('children.children.children')
             ->where('slug', $slug)
             ->where('is_active', true)
             ->firstOrFail();
@@ -35,51 +37,43 @@ class CategoryController extends Controller
             ->with('media')
             ->paginate(12);
 
-        $breadcrumbs = $this->buildBreadcrumbs($category);
+        $breadcrumbs = $breadcrumbsService->forCategory($category);
 
-        return view('catalog.category', compact('category', 'products', 'breadcrumbs'));
+        // Получаем конечные категории
+        $leafCategories = $this->getLeafCategories($category);
+        $leafIds = $leafCategories->pluck('id');
+
+        // Подсчёт товаров одним запросом
+        $productsCount = DB::table('products')
+            ->selectRaw('category_id, COUNT(*) as total')
+            ->whereIn('category_id', $leafIds)
+            ->groupBy('category_id')
+            ->pluck('total', 'category_id');
+
+        // Присваиваем products_count каждой категории
+        $leafCategories = $leafCategories->map(function ($cat) use ($productsCount) {
+            $cat->products_count = $productsCount[$cat->id] ?? 0;
+            return $cat;
+        });
+
+        return view('catalog.category', compact('category', 'products', 'breadcrumbs', 'leafCategories'));
     }
 
-    /**
-     * Построить хлебные крошки для категории
-     */
-    protected function buildBreadcrumbs(Category $category): array
+    protected function getLeafCategories($category)
     {
-        $breadcrumbs = [
-            ['label' => 'Главная', 'url' => route('home') ?? '/'],
-            ['label' => 'Каталог', 'url' => route('catalog.index')],
-        ];
+        $result = collect();
 
-        $ancestors = $this->getAncestors($category);
-
-        foreach ($ancestors as $ancestor) {
-            $breadcrumbs[] = [
-                'label' => $ancestor->name,
-                'url' => route('catalog.category', $ancestor->slug),
-            ];
+        foreach ($category->children as $child) {
+            if ($child->children->count()) {
+                // если есть дети — идём глубже
+                $result = $result->merge($this->getLeafCategories($child));
+            } else {
+                // если нет детей — это конечная категория
+                $result->push($child);
+            }
         }
 
-        $breadcrumbs[] = [
-            'label' => $category->name,
-            'url' => null,
-        ];
-
-        return $breadcrumbs;
+        return $result;
     }
 
-    /**
-     * Получить всех предков категории
-     */
-    protected function getAncestors(Category $category): array
-    {
-        $ancestors = [];
-        $parent = $category->parent;
-
-        while ($parent) {
-            array_unshift($ancestors, $parent);
-            $parent = $parent->parent;
-        }
-
-        return $ancestors;
-    }
 }

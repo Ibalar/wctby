@@ -91,58 +91,27 @@
 
                         <!-- Categories -->
                         <div class="w-100 border rounded p-3 p-xl-4 mb-3 mb-xl-4">
-                            <h4 class="h6 mb-2">Categories</h4>
+                            <h4 class="h6 mb-2">Разделы каталога</h4>
+
                             <ul class="list-unstyled d-block m-0">
-                                <li class="nav d-block pt-2 mt-1">
-                                    <a class="nav-link animate-underline fw-normal p-0" href="#!">
-                                        <span class="animate-target text-truncate me-3">Smartphones</span>
-                                        <span class="text-body-secondary fs-xs ms-auto">218</span>
-                                    </a>
-                                </li>
-                                <li class="nav d-block pt-2 mt-1">
-                                    <a class="nav-link animate-underline fw-normal p-0" href="#!">
-                                        <span class="animate-target text-truncate me-3">Accessories</span>
-                                        <span class="text-body-secondary fs-xs ms-auto">372</span>
-                                    </a>
-                                </li>
-                                <li class="nav d-block pt-2 mt-1">
-                                    <a class="nav-link animate-underline fw-normal p-0" href="#!">
-                                        <span class="animate-target text-truncate me-3">Tablets</span>
-                                        <span class="text-body-secondary fs-xs ms-auto">110</span>
-                                    </a>
-                                </li>
-                                <li class="nav d-block pt-2 mt-1">
-                                    <a class="nav-link animate-underline fw-normal p-0" href="#!">
-                                        <span class="animate-target text-truncate me-3">Wearable Electronics</span>
-                                        <span class="text-body-secondary fs-xs ms-auto">142</span>
-                                    </a>
-                                </li>
-                                <li class="nav d-block pt-2 mt-1">
-                                    <a class="nav-link animate-underline fw-normal p-0" href="#!">
-                                        <span class="animate-target text-truncate me-3">Computers &amp; Laptops</span>
-                                        <span class="text-body-secondary fs-xs ms-auto">205</span>
-                                    </a>
-                                </li>
-                                <li class="nav d-block pt-2 mt-1">
-                                    <a class="nav-link animate-underline fw-normal p-0" href="#!">
-                                        <span class="animate-target text-truncate me-3">Cameras, Photo &amp; Video</span>
-                                        <span class="text-body-secondary fs-xs ms-auto">78</span>
-                                    </a>
-                                </li>
-                                <li class="nav d-block pt-2 mt-1">
-                                    <a class="nav-link animate-underline fw-normal p-0" href="#!">
-                                        <span class="animate-target text-truncate me-3">Headphones</span>
-                                        <span class="text-body-secondary fs-xs ms-auto">121</span>
-                                    </a>
-                                </li>
-                                <li class="nav d-block pt-2 mt-1">
-                                    <a class="nav-link animate-underline fw-normal p-0" href="#!">
-                                        <span class="animate-target text-truncate me-3">Video Games</span>
-                                        <span class="text-body-secondary fs-xs ms-auto">89</span>
-                                    </a>
-                                </li>
+                                @foreach($leafCategories as $cat)
+                                    <li class="nav d-block pt-2 mt-1">
+                                        <a class="nav-link animate-underline fw-normal p-0"
+                                           href="{{ route('catalog.category', $cat['slug']) }}">
+
+                                            <span class="animate-target text-truncate me-3">
+                                                {{ $cat['name'] }}
+                                            </span>
+
+                                            <span class="text-body-secondary fs-xs ms-auto">
+                                                {{ $cat['products_count'] }}
+                                            </span>
+                                        </a>
+                                    </li>
+                                @endforeach
                             </ul>
                         </div>
+
 
                         <!-- Price range -->
                         <div class="w-100 border rounded p-3 p-xl-4 mb-3 mb-xl-4">

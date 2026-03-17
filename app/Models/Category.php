@@ -140,4 +140,6 @@ class Category extends Model implements HasMedia
 
         return $data;
     }
+
+
 }
