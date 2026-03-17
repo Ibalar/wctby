@@ -125,14 +125,15 @@ class CategoryController extends Controller
 
         $leafCategories = $leafCategories->map(fn($cat) => tap($cat, fn($c) => $c->products_count = $productsCount[$cat->id] ?? 0));
 
+        $priceRange = (object) ['min_price' => $minPrice, 'max_price' => $maxPrice];
+
         return view('catalog.category', compact(
             'category',
             'products',
             'breadcrumbs',
             'leafCategories',
             'allFlags',
-            'minPrice',
-            'maxPrice'
+            'priceRange'
         ));
     }
 
