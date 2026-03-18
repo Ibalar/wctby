@@ -1,7 +1,5 @@
 @extends('layouts.main')
 
-
-
 @section('content')
 
     {{-- Хлебные крошки --}}
@@ -15,30 +13,76 @@
         <div class="row">
             <div class="col-lg-9">
                 <div class="d-md-flex align-items-start">
-                    <div class="h6 fs-sm fw-normal text-nowrap translate-middle-y mt-3 mb-0 me-4">Found <span class="fw-semibold">732</span> items</div>
+                    <div class="h6 fs-sm fw-normal text-nowrap translate-middle-y mt-3 mb-0 me-4">
+                        Всего <span class="fw-semibold">{{ $totalProducts }}</span> товар(-ов)
+                    </div>
                     <div class="d-flex flex-wrap gap-2">
-                        <button type="button" class="btn btn-sm btn-secondary">
-                            <i class="ci-close fs-sm ms-n1 me-1"></i>
-                            Sale
-                        </button>
-                        <button type="button" class="btn btn-sm btn-secondary">
-                            <i class="ci-close fs-sm ms-n1 me-1"></i>
-                            Asus
-                        </button>
-                        <button type="button" class="btn btn-sm btn-secondary">
-                            <i class="ci-close fs-sm ms-n1 me-1"></i>
-                            1 TB
-                        </button>
-                        <button type="button" class="btn btn-sm btn-secondary">
-                            <i class="ci-close fs-sm ms-n1 me-1"></i>
-                            $340 - $1,250
-                        </button>
-                        @if(request('status'))
-                            <a href="{{ route('catalog.category', $category->slug) }}"
-                               class="btn btn-sm btn-secondary bg-transparent border-0 text-decoration-underline px-0 ms-2">
-                                Очистить
+
+                        {{-- Статусы --}}
+                        @if($selectedStatuses = Arr::wrap(request('status')))
+                            @foreach($selectedStatuses as $status)
+                                @php
+                                    if(is_array($status)) $status = $status['title'] ?? implode(', ', $status);
+                                    $query = request()->except('page');
+                                    $query['status'] = array_values(array_filter($selectedStatuses, fn($s) => (is_array($s) ? ($s['title'] ?? '') : $s) !== $status));
+                                @endphp
+                                <a href="{{ url()->current() . '?' . http_build_query($query) }}" class="btn btn-sm btn-secondary">
+                                    <i class="ci-close fs-sm ms-n1 me-1"></i>
+                                    {{ $status }}
+                                </a>
+                            @endforeach
+                        @endif
+
+                        {{-- Бренды --}}
+                        @if($selectedBrands = Arr::wrap(request('brand')))
+                            @foreach($selectedBrands as $brand)
+                                @php
+                                    if(is_array($brand)) $brand = $brand['title'] ?? implode(', ', $brand);
+                                    $query = request()->except('page');
+                                    $query['brand'] = array_values(array_filter($selectedBrands, fn($b) => (is_array($b) ? ($b['title'] ?? '') : $b) !== $brand));
+                                @endphp
+                                <a href="{{ url()->current() . '?' . http_build_query($query) }}" class="btn btn-sm btn-secondary">
+                                    <i class="ci-close fs-sm ms-n1 me-1"></i>
+                                    {{ $brand }}
+                                </a>
+                            @endforeach
+                        @endif
+
+                        {{-- Опции --}}
+                        @if($selectedOptions = Arr::wrap(request('option')))
+                            @foreach($selectedOptions as $option)
+                                @php
+                                    if(is_array($option)) $option = $option['title'] ?? implode(', ', $option);
+                                    $query = request()->except('page');
+                                    $query['option'] = array_values(array_filter($selectedOptions, fn($o) => (is_array($o) ? ($o['title'] ?? '') : $o) !== $option));
+                                @endphp
+                                <a href="{{ url()->current() . '?' . http_build_query($query) }}" class="btn btn-sm btn-secondary">
+                                    <i class="ci-close fs-sm ms-n1 me-1"></i>
+                                    {{ $option }}
+                                </a>
+                            @endforeach
+                        @endif
+
+                        {{-- Диапазон цен --}}
+                        @if(request('price_min') || request('price_max'))
+                            @php
+                                $priceText = '$' . (request('price_min') ?? '0') . ' - $' . (request('price_max') ?? '∞');
+                                $query = request()->query();
+                                unset($query['price_min'], $query['price_max']);
+                            @endphp
+                            <a href="{{ url()->current() . '?' . http_build_query($query) }}" class="btn btn-sm btn-secondary">
+                                <i class="ci-close fs-sm ms-n1 me-1"></i>
+                                {{ $priceText }}
                             </a>
                         @endif
+
+                        {{-- Очистить все --}}
+                        @if(request()->query())
+                            <a href="{{ route('catalog.category', $category->slug) }}" class="btn btn-sm btn-secondary bg-transparent border-0 text-decoration-underline px-0 ms-2">
+                                Очистить все
+                            </a>
+                        @endif
+
                     </div>
                 </div>
             </div>
@@ -60,60 +104,64 @@
         <hr class="d-lg-none my-3">
     </section>
 
-
-    <!-- Products grid + Sidebar with filters -->
+    <!-- Products grid + Sidebar -->
     <section class="container pb-5 mb-sm-2 mb-md-3 mb-lg-4 mb-xl-5">
         <div class="row">
 
-            <!-- Filter sidebar that turns into offcanvas on screens < 992px wide (lg breakpoint) -->
+            <!-- Filter sidebar -->
             <aside class="col-lg-3">
                 <div class="offcanvas-lg offcanvas-start" id="filterSidebar">
                     <div class="offcanvas-header py-3">
                         <h5 class="offcanvas-title">Фильтры</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#filterSidebar" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                     </div>
                     <div class="offcanvas-body flex-column pt-2 py-lg-0">
 
-                        <!-- Status -->
-                        <div class="w-100 border rounded p-3 p-xl-4 mb-3 mb-xl-4">
-                            <h4 class="h6">Статус</h4>
-
-                            <div class="d-flex flex-wrap gap-2">
-                                @foreach($allFlags as $flag)
-                                    <a href="{{ request()->fullUrlWithQuery(['status' => $flag]) }}"
-                                       class="btn btn-sm {{ request('status') == $flag ? 'btn-primary' : 'btn-outline-secondary' }}">
-
-                                        {{ $flag }}
-                                    </a>
-                                @endforeach
-                            </div>
-                        </div>
-
-                        <!-- Categories -->
-                        <div class="w-100 border rounded p-3 p-xl-4 mb-3 mb-xl-4">
-                            <h4 class="h6 mb-2">Разделы каталога</h4>
-
-                            <ul class="list-unstyled d-block m-0">
-                                @foreach($leafCategories as $cat)
-                                    <li class="nav d-block pt-2 mt-1">
-                                        <a class="nav-link animate-underline fw-normal p-0"
-                                           href="{{ route('catalog.category', $cat['slug']) }}">
-
-                                            <span class="animate-target text-truncate me-3">
-                                                {{ $cat['name'] }}
-                                            </span>
-
-                                            <span class="text-body-secondary fs-xs ms-auto">
-                                                {{ $cat['products_count'] }}
-                                            </span>
+                        <!-- Status filter -->
+                        @if(!empty($allFlags) && $allFlags->count())
+                            <div class="w-100 border rounded p-3 p-xl-4 mb-3 mb-xl-4">
+                                <h4 class="h6">Статус</h4>
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach($allFlags as $flag)
+                                        @php
+                                            $flagTitle = is_array($flag) ? ($flag['title'] ?? implode(', ', $flag)) : $flag;
+                                            $selectedStatuses = Arr::wrap(request('status'));
+                                            $isSelected = in_array($flagTitle, $selectedStatuses);
+                                            $query = request()->query();
+                                            if ($isSelected) {
+                                                $query['status'] = array_values(array_filter($selectedStatuses, fn($s) => (is_array($s) ? ($s['title'] ?? '') : $s) !== $flagTitle));
+                                            } else {
+                                                $query['status'] = array_merge($selectedStatuses, [$flagTitle]);
+                                            }
+                                        @endphp
+                                        <a href="{{ url()->current() . '?' . http_build_query($query) }}"
+                                           class="btn btn-sm {{ $isSelected ? 'btn-primary' : 'btn-outline-secondary' }}">
+                                            {{ $flagTitle }}
                                         </a>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
 
+                        <!-- Подразделы -->
+                        @if(!empty($leafCategories) && $leafCategories->count())
+                            <div class="w-100 border rounded p-3 p-xl-4 mb-3 mb-xl-4">
+                                <h4 class="h6 mb-2">Подразделы каталога</h4>
+                                <ul class="list-unstyled d-block m-0">
+                                    @foreach($leafCategories as $cat)
+                                        <li class="nav d-block pt-2 mt-1">
+                                            <a class="nav-link animate-underline fw-normal p-0"
+                                               href="{{ route('catalog.category', $cat['slug']) }}">
+                                                <span class="animate-target text-truncate me-3">{{ $cat['name'] }}</span>
+                                                <span class="text-body-secondary fs-xs ms-auto">{{ $cat['products_count'] }}</span>
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
 
-                        <!-- Price range -->
+                        <!-- Диапазон цен -->
                         <div class="w-100 border rounded p-3 p-xl-4 mb-3 mb-xl-4">
                             <h4 class="h6 mb-2" id="slider-label">Стоимость</h4>
                             <div class="range-slider" aria-labelledby="slider-label"
@@ -144,207 +192,9 @@
                             </div>
                         </div>
 
-                        <!-- Brand (checkboxes) -->
-                        <div class="w-100 border rounded p-3 p-xl-4 mb-3 mb-xl-4">
-                            <h4 class="h6">Brand</h4>
-                            <div class="d-flex flex-column gap-1">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <div class="form-check">
-                                        <input type="checkbox" class="form-check-input" id="apple" checked>
-                                        <label for="apple" class="form-check-label text-body-emphasis">Apple</label>
-                                    </div>
-                                    <span class="text-body-secondary fs-xs">64</span>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <div class="form-check">
-                                        <input type="checkbox" class="form-check-input" id="asus">
-                                        <label for="asus" class="form-check-label text-body-emphasis">Asus</label>
-                                    </div>
-                                    <span class="text-body-secondary fs-xs">310</span>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <div class="form-check">
-                                        <input type="checkbox" class="form-check-input" id="bao">
-                                        <label for="bao" class="form-check-label text-body-emphasis">Bang &amp; Olufsen</label>
-                                    </div>
-                                    <span class="text-body-secondary fs-xs">47</span>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <div class="form-check">
-                                        <input type="checkbox" class="form-check-input" id="bosh">
-                                        <label for="bosh" class="form-check-label text-body-emphasis">Bosh</label>
-                                    </div>
-                                    <span class="text-body-secondary fs-xs">112</span>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <div class="form-check">
-                                        <input type="checkbox" class="form-check-input" id="cobra">
-                                        <label for="cobra" class="form-check-label text-body-emphasis">Cobra</label>
-                                    </div>
-                                    <span class="text-body-secondary fs-xs">96</span>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <div class="form-check">
-                                        <input type="checkbox" class="form-check-input" id="dell">
-                                        <label for="dell" class="form-check-label text-body-emphasis">Dell</label>
-                                    </div>
-                                    <span class="text-body-secondary fs-xs">178</span>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <div class="form-check">
-                                        <input type="checkbox" class="form-check-input" id="foxconn">
-                                        <label for="foxconn" class="form-check-label text-body-emphasis">Foxconn</label>
-                                    </div>
-                                    <span class="text-body-secondary fs-xs">95</span>
-                                </div>
-                                <div class="accordion mb-n2">
-                                    <div class="accordion-item border-0">
-                                        <div class="accordion-collapse collapse" id="more-brands">
-                                            <div class="d-flex flex-column gap-1">
-                                                <div class="d-flex align-items-center justify-content-between">
-                                                    <div class="form-check">
-                                                        <input type="checkbox" class="form-check-input" id="hp">
-                                                        <label for="hp" class="form-check-label text-body-emphasis">Hewlett Packard</label>
-                                                    </div>
-                                                    <span class="text-body-secondary fs-xs">61</span>
-                                                </div>
-                                                <div class="d-flex align-items-center justify-content-between">
-                                                    <div class="form-check">
-                                                        <input type="checkbox" class="form-check-input" id="huawei">
-                                                        <label for="huawei" class="form-check-label text-body-emphasis">Huawei</label>
-                                                    </div>
-                                                    <span class="text-body-secondary fs-xs">417</span>
-                                                </div>
-                                                <div class="d-flex align-items-center justify-content-between">
-                                                    <div class="form-check">
-                                                        <input type="checkbox" class="form-check-input" id="panasonic">
-                                                        <label for="panasonic" class="form-check-label text-body-emphasis">Panasonic</label>
-                                                    </div>
-                                                    <span class="text-body-secondary fs-xs">123</span>
-                                                </div>
-                                                <div class="d-flex align-items-center justify-content-between">
-                                                    <div class="form-check">
-                                                        <input type="checkbox" class="form-check-input" id="samsung">
-                                                        <label for="samsung" class="form-check-label text-body-emphasis">Samsung</label>
-                                                    </div>
-                                                    <span class="text-body-secondary fs-xs">284</span>
-                                                </div>
-                                                <div class="d-flex align-items-center justify-content-between">
-                                                    <div class="form-check">
-                                                        <input type="checkbox" class="form-check-input" id="sony">
-                                                        <label for="sony" class="form-check-label text-body-emphasis">Sony</label>
-                                                    </div>
-                                                    <span class="text-body-secondary fs-xs">133</span>
-                                                </div>
-                                                <div class="d-flex align-items-center justify-content-between">
-                                                    <div class="form-check">
-                                                        <input type="checkbox" class="form-check-input" id="toshiba">
-                                                        <label for="toshiba" class="form-check-label text-body-emphasis">Toshiba</label>
-                                                    </div>
-                                                    <span class="text-body-secondary fs-xs">39</span>
-                                                </div>
-                                                <div class="d-flex align-items-center justify-content-between">
-                                                    <div class="form-check">
-                                                        <input type="checkbox" class="form-check-input" id="xiaomi">
-                                                        <label for="xiaomi" class="form-check-label text-body-emphasis">Xiaomi</label>
-                                                    </div>
-                                                    <span class="text-body-secondary fs-xs">421</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="accordion-header">
-                                            <button type="button" class="accordion-button w-auto fs-sm fw-medium collapsed animate-underline py-2" data-bs-toggle="collapse" data-bs-target="#more-brands" aria-expanded="false" aria-controls="more-brands" aria-label="Show/hide more brands">
-                                                <span class="animate-target me-2" data-label-collapsed="Show all" data-label-expanded="Show less"></span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- SSD size (checkboxes) -->
-                        <div class="w-100 border rounded p-3 p-xl-4 mb-3 mb-xl-4">
-                            <h4 class="h6">SSD size</h4>
-                            <div class="d-flex flex-column gap-1">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <div class="form-check">
-                                        <input type="checkbox" class="form-check-input" id="tb-2">
-                                        <label for="tb-2" class="form-check-label text-body-emphasis">2 TB</label>
-                                    </div>
-                                    <span class="text-body-secondary fs-xs">13</span>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <div class="form-check">
-                                        <input type="checkbox" class="form-check-input" id="tb-1">
-                                        <label for="tb-1" class="form-check-label text-body-emphasis">1 TB</label>
-                                    </div>
-                                    <span class="text-body-secondary fs-xs">28</span>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <div class="form-check">
-                                        <input type="checkbox" class="form-check-input" id="gb-512" checked>
-                                        <label for="gb-512" class="form-check-label text-body-emphasis">512 GB</label>
-                                    </div>
-                                    <span class="text-body-secondary fs-xs">47</span>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <div class="form-check">
-                                        <input type="checkbox" class="form-check-input" id="gb-256">
-                                        <label for="gb-256" class="form-check-label text-body-emphasis">256 GB</label>
-                                    </div>
-                                    <span class="text-body-secondary fs-xs">56</span>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <div class="form-check">
-                                        <input type="checkbox" class="form-check-input" id="gb-128">
-                                        <label for="gb-128" class="form-check-label text-body-emphasis">128 GB</label>
-                                    </div>
-                                    <span class="text-body-secondary fs-xs">69</span>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <div class="form-check">
-                                        <input type="checkbox" class="form-check-input" id="gb-64">
-                                        <label for="gb-64" class="form-check-label text-body-emphasis">64 GB or less</label>
-                                    </div>
-                                    <span class="text-body-secondary fs-xs">141</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Color -->
-                        <div class="w-100 border rounded p-3 p-xl-4">
-                            <h4 class="h6">Color</h4>
-                            <div class="nav d-block mt-n2">
-                                <button type="button" class="nav-link w-auto animate-underline fw-normal pt-2 pb-0 px-0">
-                                    <span class="rounded-circle me-2" style="width: .875rem; height: .875rem; margin-top: .125rem; background-color: #8bc4ab"></span>
-                                    <span class="animate-target">Green</span>
-                                </button>
-                                <button type="button" class="nav-link w-auto animate-underline fw-normal mt-1 pt-2 pb-0 px-0">
-                                    <span class="rounded-circle me-2" style="width: .875rem; height: .875rem; margin-top: .125rem; background-color: #ee7976"></span>
-                                    <span class="animate-target">Coral red</span>
-                                </button>
-                                <button type="button" class="nav-link w-auto animate-underline fw-normal mt-1 pt-2 pb-0 px-0">
-                                    <span class="rounded-circle me-2" style="width: .875rem; height: .875rem; margin-top: .125rem; background-color: #df8fbf"></span>
-                                    <span class="animate-target">Light pink</span>
-                                </button>
-                                <button type="button" class="nav-link w-auto animate-underline fw-normal mt-1 pt-2 pb-0 px-0">
-                                    <span class="rounded-circle me-2" style="width: .875rem; height: .875rem; margin-top: .125rem; background-color: #9acbf1"></span>
-                                    <span class="animate-target">Sky blue</span>
-                                </button>
-                                <button type="button" class="nav-link w-auto animate-underline fw-normal mt-1 pt-2 pb-0 px-0">
-                                    <span class="rounded-circle me-2" style="width: .875rem; height: .875rem; margin-top: .125rem; background-color: #364254"></span>
-                                    <span class="animate-target">Black</span>
-                                </button>
-                                <button type="button" class="nav-link w-auto animate-underline fw-normal mt-1 pt-2 pb-0 px-0">
-                                    <span class="border rounded-circle me-2" style="width: .875rem; height: .875rem; margin-top: .125rem; background-color: #ffffff"></span>
-                                    <span class="animate-target">White</span>
-                                </button>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </aside>
-
 
             <!-- Product grid -->
             <div id="products-container" class="col-lg-9">
@@ -353,120 +203,90 @@
         </div>
     </section>
 
-
 @endsection
 
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-
             const container = document.getElementById('products-container');
+            let priceSlider = null;
 
             function getFilters() {
                 let params = new URLSearchParams();
-
-                // Статусы
-                document.querySelectorAll('input[name="status[]"]:checked')
-                    .forEach(el => params.append('status[]', el.value));
 
                 // Сортировка
                 let sort = document.querySelector('[name="sort"]')?.value;
                 if (sort) params.append('sort', sort);
 
-                // Цена
-                const priceMinInput = document.querySelector('[data-range-slider-min]');
-                const priceMaxInput = document.querySelector('[data-range-slider-max]');
-                if (priceMinInput?.value) params.append('price_min', priceMinInput.value);
-                if (priceMaxInput?.value) params.append('price_max', priceMaxInput.value);
+                // Статусы, бренды, опции — берём из URL query
+                let queryParams = new URLSearchParams(window.location.search);
+                queryParams.forEach((v,k) => {
+                    if(['status','brand','option'].includes(k)) {
+                        if(Array.isArray(v)) v.forEach(val=>params.append(k+'[]', val));
+                        else params.append(k+'[]', v);
+                    }
+                });
+
+                // Диапазон цен
+                if(priceSlider){
+                    let values = priceSlider.get();
+                    params.set('price_min', values[0]);
+                    params.set('price_max', values[1]);
+                }
 
                 return params.toString();
             }
 
-            function loadProducts(url = null) {
+            function loadProducts(url = null){
                 const baseUrl = "{{ route('catalog.filter', $category->slug) }}";
                 const query = getFilters();
-
                 fetch((url || baseUrl) + '?' + query)
                     .then(res => res.text())
                     .then(html => {
                         container.innerHTML = html;
-                        attachPagination();
                     });
             }
 
-            // Автофильтр статусов
-            document.querySelectorAll('input[name="status[]"]').forEach(el => {
-                el.addEventListener('change', () => loadProducts());
-            });
+            // Инициализация слайдера
+            function initPriceSlider() {
+                const wrapper = document.querySelector('.range-slider');
+                if (!wrapper) return;
 
-            // Сортировка
-            document.querySelector('[name="sort"]')?.addEventListener('change', () => loadProducts());
+                const sliderElement = wrapper.querySelector('.range-slider-ui');
+                const minInput = wrapper.querySelector('[data-range-slider-min]');
+                const maxInput = wrapper.querySelector('[data-range-slider-max]');
+                const config = JSON.parse(wrapper.dataset.rangeSlider);
 
-            // Ползунок цены
-            const priceSliderWrapper = document.querySelector('.range-slider');
-            if (priceSliderWrapper) {
-                const sliderElement = priceSliderWrapper.querySelector('.range-slider-ui');
-                const minInput = priceSliderWrapper.querySelector('[data-range-slider-min]');
-                const maxInput = priceSliderWrapper.querySelector('[data-range-slider-max]');
+                if(sliderElement.noUiSlider) sliderElement.noUiSlider.destroy();
 
-                // Parse config from data attribute
-                const sliderConfig = JSON.parse(priceSliderWrapper.dataset.rangeSlider);
+                noUiSlider.create(sliderElement, {
+                    start: [minInput.value || config.startMin, maxInput.value || config.startMax],
+                    connect: true,
+                    range: { min: parseInt(config.min), max: parseInt(config.max) },
+                    step: parseInt(config.step),
+                    format: { to: v => parseInt(v,10), from: v => Number(v) }
+                });
 
-                // Initialize noUiSlider
-                if (sliderElement && typeof noUiSlider !== 'undefined') {
-                    noUiSlider.create(sliderElement, {
-                        start: [sliderConfig.startMin, sliderConfig.startMax],
-                        connect: true,
-                        range: {
-                            min: parseInt(sliderConfig.min),
-                            max: parseInt(sliderConfig.max)
-                        },
-                        step: parseInt(sliderConfig.step),
-                        format: {
-                            to: function (value) {
-                                return parseInt(value, 10);
-                            },
-                            from: function (value) {
-                                return Number(value);
-                            }
-                        }
-                    });
+                priceSlider = sliderElement.noUiSlider;
 
-                    const slider = sliderElement.noUiSlider;
+                priceSlider.on('change', function(values){
+                    minInput.value = values[0];
+                    maxInput.value = values[1];
+                    loadProducts();
+                });
 
-                    // On slider update - update inputs and trigger AJAX
-                    slider.on('update', function (values, handle) {
-                        if (handle === 0) {
-                            minInput.value = values[0];
-                        } else {
-                            maxInput.value = values[1];
-                        }
-                        loadProducts();
-                    });
+                minInput.addEventListener('change', () => {
+                    priceSlider.set([minInput.value, null]);
+                    loadProducts();
+                });
 
-                    // On input change - update slider and trigger AJAX
-                    minInput.addEventListener('input', function () {
-                        slider.set([this.value, null]);
-                    });
-
-                    maxInput.addEventListener('input', function () {
-                        slider.set([null, this.value]);
-                    });
-                }
+                maxInput.addEventListener('change', () => {
+                    priceSlider.set([null, maxInput.value]);
+                    loadProducts();
+                });
             }
 
-            // AJAX пагинация
-            function attachPagination() {
-                document.querySelectorAll('#products-container .pagination a')
-                    .forEach(link => {
-                        link.addEventListener('click', function (e) {
-                            e.preventDefault();
-                            loadProducts(this.href);
-                        });
-                    });
-            }
-
-            attachPagination();
+            initPriceSlider();
         });
     </script>
 @endpush

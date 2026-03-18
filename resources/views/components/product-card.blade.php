@@ -51,9 +51,12 @@
             </div>
 
             <a class="d-block rounded-top overflow-hidden p-3 p-sm-4" href="{{ route('catalog.product', $product->slug) }}">
-                @foreach($flags as $flag)
-                    <span class="badge position-absolute top-0 start-0 mt-2 ms-2 mt-lg-3 ms-lg-3"
-                          style="background-color: {{ $flag['color'] ?? '#2f6ed5' }}; color: {{ $flag['color_text'] ?? '#ffffff' }}">
+                @foreach(array_slice($flags, 0, 2) as $index => $flag)
+                    <span class="badge position-absolute top-0
+                        {{ $index === 0 ? 'start-0' : 'end-0' }}
+                        mt-2 ms-2 mt-lg-3 ms-lg-3"
+                                          style="background-color: {{ $flag['color'] ?? '#2f6ed5' }};
+                               color: {{ $flag['color_text'] ?? '#ffffff' }}">
                         {{ $flag['title'] ?? '' }}
                     </span>
                 @endforeach

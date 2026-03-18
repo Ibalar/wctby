@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Product;
 use App\Services\BreadcrumbService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Arr;
 
 class CategoryController extends Controller
 {
@@ -26,9 +28,12 @@ class CategoryController extends Controller
             ->where('is_active', true)
             ->firstOrFail();
 
-        // GET-параметры фильтров
+        // ✅ Фильтры
         $sort = request('sort');
-        $statuses = request('status', []);
+
+        // 🔥 ИСПРАВЛЕНИЕ ЗДЕСЬ
+        $statuses = array_filter(Arr::wrap(request('status')));
+
         $priceMin = request('price_min');
         $priceMax = request('price_max');
 
@@ -50,18 +55,25 @@ class CategoryController extends Controller
             });
         }
 
-        // 🔥 Фильтр по цене с учетом SKU
+        // 🔥 Фильтр по цене
         if ($priceMin !== null || $priceMax !== null) {
-            $productsQuery->where(function ($q) use ($priceMin, $priceMax) {
-                $q->where(function ($q2) use ($priceMin, $priceMax) {
-                    if ($priceMin !== null) $q2->where('base_price', '>=', $priceMin);
-                    if ($priceMax !== null) $q2->where('base_price', '<=', $priceMax);
-                })->orWhereHas('skus', function ($q2) use ($priceMin, $priceMax) {
-                    if ($priceMin !== null) $q2->where('price', '>=', $priceMin);
-                    if ($priceMax !== null) $q2->where('price', '<=', $priceMax);
-                    $q2->where('is_active', true);
-                });
-            });
+            if ($priceMin !== null) {
+                $productsQuery->whereRaw("
+            COALESCE(
+                (SELECT MIN(price) FROM skus WHERE skus.product_id = products.id AND skus.is_active = 1),
+                products.base_price
+            ) >= ?
+        ", [$priceMin]);
+            }
+
+            if ($priceMax !== null) {
+                $productsQuery->whereRaw("
+            COALESCE(
+                (SELECT MIN(price) FROM skus WHERE skus.product_id = products.id AND skus.is_active = 1),
+                products.base_price
+            ) <= ?
+        ", [$priceMax]);
+            }
         }
 
         // 🔥 Сортировка
@@ -90,7 +102,7 @@ class CategoryController extends Controller
         // Хлебные крошки
         $breadcrumbs = $breadcrumbsService->forCategory($category);
 
-        // 🔥 Диапазон цен для слайдера
+        // 🔥 Диапазон цен
         $allPrices = $category->allProducts()
             ->with('skus')
             ->where('products.is_active', true)
@@ -108,13 +120,16 @@ class CategoryController extends Controller
             ->where('products.is_active', true)
             ->pluck('flags')
             ->filter()
-            ->flatMap(fn($flags) => collect($flags)->where('active', true)->pluck('title'))
+            ->flatMap(fn($flags) => collect($flags)
+                ->where('active', true)
+                ->pluck('title')
+            )
             ->unique()
             ->values();
 
-        // Leaf-категории и подсчет товаров
+        // Leaf категории
         $leafCategories = $this->getLeafCategories($category);
-        $leafIds = $leafCategories->pluck('id');
+        $leafIds = $leafCategories->pluck('id')->push($category->id);
 
         $productsCount = DB::table('products')
             ->selectRaw('category_id, COUNT(*) as total')
@@ -123,9 +138,18 @@ class CategoryController extends Controller
             ->groupBy('category_id')
             ->pluck('total', 'category_id');
 
-        $leafCategories = $leafCategories->map(fn($cat) => tap($cat, fn($c) => $c->products_count = $productsCount[$cat->id] ?? 0));
+        $leafCategories = $leafCategories->map(
+            fn($cat) => tap($cat, fn($c) => $c->products_count = $productsCount[$cat->id] ?? 0)
+        );
 
-        $priceRange = (object) ['min_price' => $minPrice, 'max_price' => $maxPrice];
+        $totalProducts = Product::whereIn('category_id', $leafIds)
+            ->where('is_active', true)
+            ->count();
+
+        $priceRange = (object)[
+            'min_price' => $minPrice,
+            'max_price' => $maxPrice
+        ];
 
         return view('catalog.category', compact(
             'category',
@@ -133,7 +157,8 @@ class CategoryController extends Controller
             'breadcrumbs',
             'leafCategories',
             'allFlags',
-            'priceRange'
+            'priceRange',
+            'totalProducts'
         ));
     }
 
@@ -144,7 +169,10 @@ class CategoryController extends Controller
             ->firstOrFail();
 
         $sort = request('sort');
-        $statuses = request('status', []);
+
+        // 🔥 ИСПРАВЛЕНИЕ ЗДЕСЬ
+        $statuses = array_filter(Arr::wrap(request('status')));
+
         $priceMin = request('price_min');
         $priceMax = request('price_max');
 
@@ -164,17 +192,25 @@ class CategoryController extends Controller
             });
         }
 
+
         if ($priceMin !== null || $priceMax !== null) {
-            $productsQuery->where(function ($q) use ($priceMin, $priceMax) {
-                $q->where(function ($q2) use ($priceMin, $priceMax) {
-                    if ($priceMin !== null) $q2->where('base_price', '>=', $priceMin);
-                    if ($priceMax !== null) $q2->where('base_price', '<=', $priceMax);
-                })->orWhereHas('skus', function ($q2) use ($priceMin, $priceMax) {
-                    if ($priceMin !== null) $q2->where('price', '>=', $priceMin);
-                    if ($priceMax !== null) $q2->where('price', '<=', $priceMax);
-                    $q2->where('is_active', true);
-                });
-            });
+            if ($priceMin !== null) {
+                $productsQuery->whereRaw("
+            COALESCE(
+                (SELECT MIN(price) FROM skus WHERE skus.product_id = products.id AND skus.is_active = 1),
+                products.base_price
+            ) >= ?
+        ", [$priceMin]);
+            }
+
+            if ($priceMax !== null) {
+                $productsQuery->whereRaw("
+            COALESCE(
+                (SELECT MIN(price) FROM skus WHERE skus.product_id = products.id AND skus.is_active = 1),
+                products.base_price
+            ) <= ?
+        ", [$priceMax]);
+            }
         }
 
         switch ($sort) {
