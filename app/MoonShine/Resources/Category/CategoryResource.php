@@ -64,12 +64,11 @@ class CategoryResource extends TreeResource
     protected function activeActions(): ListOf
     {
         return parent::activeActions()
-            ->except(Action::VIEW)
-            ;
+            ->except(Action::VIEW);
     }
-
 
     public function compactTree(): bool {
         return true;
     }
+
 }
