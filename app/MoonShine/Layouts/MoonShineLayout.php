@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\MoonShine\Layouts;
 
+use App\Models\DeliveryMethod;
+use App\Models\PaymentMethod;
+use App\MoonShine\Resources\DeliveryMethod\DeliveryMethodResource;
+use App\MoonShine\Resources\PaymentMethod\PaymentMethodResource;
 use App\MoonShine\Resources\Slide\SlideResource;
 use App\MoonShine\Resources\User\UserResource;
 use MoonShine\Laravel\Layouts\AppLayout;
@@ -54,7 +58,10 @@ final class MoonShineLayout extends AppLayout
             MenuItem::make(OrderResource::class, 'Заказы'),
             MenuItem::make(OrderItemResource::class, 'OrderItems'),
             ...parent::menu(),
-
+            MenuGroup::make('Настройки магазина')->setItems([
+                MenuItem::make(DeliveryMethodResource::class, 'Способы доставки'),
+                MenuItem::make(PaymentMethodResource::class, 'Способы оплаты')
+            ])->icon('cog-8-tooth'),
             MenuItem::make(SlideResource::class, 'Слайдер'),
             MenuItem::make(UserResource::class, 'Пользователи'),
             MenuItem::make(ProductAttributeOptionResource::class, 'ProductAttributeOptions'),

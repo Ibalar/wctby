@@ -4,28 +4,27 @@ declare(strict_types=1);
 
 namespace App\MoonShine\Resources\Category\Pages;
 
+use App\MoonShine\Resources\Category\CategoryResource;
 use App\MoonShine\Resources\Product\ProductResource;
+use MoonShine\Contracts\Core\TypeCasts\DataWrapperContract;
+use MoonShine\Contracts\UI\ComponentContract;
+use MoonShine\Contracts\UI\FieldContract;
+use MoonShine\Contracts\UI\FormBuilderContract;
 use MoonShine\Laravel\Fields\Relationships\BelongsTo;
 use MoonShine\Laravel\Fields\Slug;
 use MoonShine\Laravel\Pages\Crud\FormPage;
-use MoonShine\Contracts\UI\ComponentContract;
-use MoonShine\Contracts\UI\FormBuilderContract;
-use MoonShine\UI\Components\FormBuilder;
-use MoonShine\Contracts\UI\FieldContract;
-use MoonShine\Contracts\Core\TypeCasts\DataWrapperContract;
-use App\MoonShine\Resources\Category\CategoryResource;
 use MoonShine\Support\ListOf;
+use MoonShine\UI\Components\FormBuilder;
+use MoonShine\UI\Components\Layout\Box;
 use MoonShine\UI\Components\Tabs;
 use MoonShine\UI\Components\Tabs\Tab;
 use MoonShine\UI\Fields\ID;
-use MoonShine\UI\Components\Layout\Box;
 use MoonShine\UI\Fields\Image;
 use MoonShine\UI\Fields\Select;
 use MoonShine\UI\Fields\Switcher;
 use MoonShine\UI\Fields\Text;
 use MoonShine\UI\Fields\Textarea;
 use Throwable;
-
 
 /**
  * @extends FormPage<CategoryResource>
@@ -61,6 +60,12 @@ class CategoryFormPage extends FormPage
                                 fn(Slug $field) => $field->readonly()
                             ),
                         Textarea::make('Описание', 'description'),
+                        Image::make('Изображение для индекса каталога', 'catalog_image')
+                            ->disk('public')
+                            ->dir('categories')
+                            ->allowedExtensions(['jpg', 'jpeg', 'png', 'webp'])
+                            ->removable()
+                            ->hint('Используется в карточке категории на странице каталога'),
                         Switcher::make('Активна', 'is_active')->default(true),
                     ]),
                     Tab::make('Промо-блок в мега-меню', [
@@ -70,13 +75,12 @@ class CategoryFormPage extends FormPage
                             ->nullable(),
                         Text::make('Подзаголовок', 'promo_subtitle')
                             ->nullable(),
-
                         Image::make('Promo Image', 'promo_image')
                             ->disk('public')
                             ->dir('promo-categories')
                             ->allowedExtensions(['jpg', 'jpeg', 'png', 'webp'])
                             ->removable()
-                            ->hint('Рекомендуемый размер изображения: 252px по ширине)'),
+                            ->hint('Рекомендуемый размер изображения: 252px по ширине'),
                         Text::make('Название кнопки', 'promo_button_text')
                             ->nullable()
                             ->placeholder('Смотреть еще')
@@ -84,18 +88,16 @@ class CategoryFormPage extends FormPage
                         Text::make('Прямая ссылка', 'promo_link')
                             ->nullable()
                             ->placeholder('https://wct.by or /product/slug'),
-
                         BelongsTo::make('Linked Product', 'promoProduct', resource: ProductResource::class)
                             ->nullable()
                             ->searchable()
-                            ->hint('Выберите товар (для перехода по кнопке)'),
+                            ->hint('Выберите товар для перехода по кнопке'),
                     ]),
                     Tab::make('Дополнительные настройки промо-блока', [
                         Text::make('Метка', 'promo_badge_text')
                             ->nullable()
                             ->placeholder('Скидка, Новинка, Хит')
                             ->hint('Значение метки опционально'),
-
                         Select::make('Цвет метки', 'promo_badge_color')
                             ->options([
                                 'danger' => 'Red',
@@ -109,13 +111,11 @@ class CategoryFormPage extends FormPage
                         Text::make('Старая цена', 'promo_old_price')
                             ->nullable()
                             ->placeholder('199'),
-
                         Text::make('Новая цена', 'promo_new_price')
                             ->nullable()
                             ->placeholder('149'),
                     ]),
                 ]),
-
             ]),
         ];
     }
@@ -135,11 +135,6 @@ class CategoryFormPage extends FormPage
         return [];
     }
 
-    /**
-     * @param  FormBuilder  $component
-     *
-     * @return FormBuilder
-     */
     protected function modifyFormComponent(FormBuilderContract $component): FormBuilderContract
     {
         return $component;

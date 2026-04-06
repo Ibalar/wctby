@@ -13,7 +13,7 @@ class Product extends Model implements HasMedia
 
     protected $fillable = [
         'category_id','type','name','slug','sku','short_description','images',
-        'description','base_price','flags','properties','is_active',
+        'description','base_price','flags','properties','is_active','featured',
         'meta_title','meta_description','meta_keywords',
     ];
 
@@ -21,6 +21,7 @@ class Product extends Model implements HasMedia
         'flags' => 'array',
         'properties' => 'array',
         'is_active' => 'boolean',
+        'featured' => 'boolean',
         'images' => 'array',
     ];
 

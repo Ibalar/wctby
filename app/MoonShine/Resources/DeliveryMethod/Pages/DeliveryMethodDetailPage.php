@@ -30,7 +30,7 @@ class DeliveryMethodDetailPage extends DetailPage
             Textarea::make('Описание', 'description'),
             Number::make('Цена', 'price'),
             Switcher::make('Активен', 'is_active'),
-            Number::make('Порядок', 'sort_order'),
+            Number::make('Сортировка', 'sort_order'),
         ];
     }
 }

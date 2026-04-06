@@ -11,7 +11,9 @@ class ProfileController extends Controller
 {
     public function index()
     {
-        $user = Auth::user()->load(['orders' => fn ($q) => $q->latest()->limit(5)]);
+        $user = Auth::user()->load([
+            'orders' => fn ($q) => $q->latest()->withCount('items')->limit(5),
+        ]);
 
         $lastOrders = $user->orders;
         $totalOrders = $user->orders()->count();
@@ -57,15 +59,23 @@ class ProfileController extends Controller
 
     public function orders(Request $request)
     {
-        $query = Auth::user()->orders()->with('items')->latest();
+        $user = Auth::user();
+        $baseQuery = $user->orders();
+        $query = $user->orders()->withCount('items')->latest();
 
         if ($request->status) {
             $query->where('status', $request->status);
         }
 
         $orders = $query->paginate(10);
+        $totalOrders = $baseQuery->count();
+        $totalSpent = $user->orders()->where('status', 'completed')->sum('total');
+        $statusCounts = $user->orders()
+            ->selectRaw('status, COUNT(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
 
-        return view('profile.orders', compact('orders'));
+        return view('profile.orders', compact('orders', 'user', 'totalOrders', 'totalSpent', 'statusCounts'));
     }
 
     public function orderShow(Order $order)
@@ -74,9 +84,12 @@ class ProfileController extends Controller
             abort(403);
         }
 
+        $user = Auth::user();
         $order->load('items');
+        $totalOrders = $user->orders()->count();
+        $totalSpent = $user->orders()->where('status', 'completed')->sum('total');
 
-        return view('profile.order', compact('order'));
+        return view('profile.order', compact('order', 'user', 'totalOrders', 'totalSpent'));
     }
 
     public function security()
@@ -105,8 +118,10 @@ class ProfileController extends Controller
 
         $providers = ['google', 'vkontakte', 'telegram', 'yandex'];
         $linkedProviders = $user->socialAccounts->pluck('provider')->toArray();
+        $totalOrders = $user->orders()->count();
+        $totalSpent = $user->orders()->where('status', 'completed')->sum('total');
 
-        return view('profile.social', compact('user', 'providers', 'linkedProviders'));
+        return view('profile.social', compact('user', 'providers', 'linkedProviders', 'totalOrders', 'totalSpent'));
     }
 
     public function unlinkSocial(string $provider)

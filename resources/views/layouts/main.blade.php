@@ -47,6 +47,26 @@
     <!-- Shopping cart offcanvas -->
     @include('partials.cart-offcanvas')
 
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1085">
+        @if(session('success'))
+            <div class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true" data-flash-toast data-bs-delay="3500">
+                <div class="d-flex">
+                    <div class="toast-body">{{ session('success') }}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true" data-flash-toast data-bs-delay="4500">
+                <div class="d-flex">
+                    <div class="toast-body">{{ session('error') }}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        @endif
+    </div>
+
     @include('partials.top-bar')
     <!-- Header -->
     @include('partials.header')
@@ -83,6 +103,115 @@
 
     <!-- Bootstrap + Theme scripts -->
     <script src="{{ asset('assets/js/theme.min.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const showFlashToast = (message, type = 'success') => {
+                if (!message) {
+                    return;
+                }
+
+                const container = document.querySelector('.toast-container');
+                if (!container) {
+                    return;
+                }
+
+                const toast = document.createElement('div');
+                toast.className = `toast align-items-center text-bg-${type === 'error' ? 'danger' : 'success'} border-0`;
+                toast.setAttribute('role', 'alert');
+                toast.setAttribute('aria-live', 'assertive');
+                toast.setAttribute('aria-atomic', 'true');
+                toast.setAttribute('data-bs-delay', type === 'error' ? '4500' : '3500');
+                toast.innerHTML = `
+                    <div class="d-flex">
+                        <div class="toast-body">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                `;
+
+                container.appendChild(toast);
+                const instance = bootstrap.Toast.getOrCreateInstance(toast);
+                toast.addEventListener('hidden.bs.toast', () => toast.remove(), { once: true });
+                instance.show();
+            };
+
+            document.querySelectorAll('[data-flash-toast]').forEach((element) => {
+                bootstrap.Toast.getOrCreateInstance(element).show();
+            });
+
+            document.addEventListener('click', (event) => {
+                const button = event.target.closest('form[data-auto-submit="quantity"] [data-increment], form[data-auto-submit="quantity"] [data-decrement]');
+                if (!button) {
+                    return;
+                }
+
+                const form = button.closest('form[data-auto-submit="quantity"]');
+                if (!form) {
+                    return;
+                }
+
+                requestAnimationFrame(() => form.requestSubmit());
+            });
+
+            document.addEventListener('submit', async (event) => {
+                const form = event.target.closest('#shoppingCart form');
+                if (!form) {
+                    return;
+                }
+
+                event.preventDefault();
+
+                const submitButton = form.querySelector('[type="submit"]');
+                if (submitButton) {
+                    submitButton.disabled = true;
+                }
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: form.method || 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                        },
+                        body: new FormData(form),
+                    });
+
+                    const payload = await response.json();
+
+                    if (!response.ok) {
+                        showFlashToast(payload.message || 'Не удалось обновить корзину', 'error');
+                        return;
+                    }
+
+                    const currentOffcanvas = document.getElementById('shoppingCart');
+                    const currentInstance = currentOffcanvas ? bootstrap.Offcanvas.getInstance(currentOffcanvas) : null;
+                    const wrapper = document.createElement('div');
+                    wrapper.innerHTML = payload.offcanvas_html || '';
+                    const nextOffcanvas = wrapper.firstElementChild;
+
+                    if (currentOffcanvas && nextOffcanvas) {
+                        currentOffcanvas.replaceWith(nextOffcanvas);
+                        bootstrap.Offcanvas.getOrCreateInstance(nextOffcanvas).show();
+                    }
+
+                    document.querySelectorAll('[data-cart-count-badge]').forEach((badge) => {
+                        badge.textContent = payload.count ?? 0;
+                    });
+
+                    if (currentInstance) {
+                        currentInstance.dispose();
+                    }
+
+                    showFlashToast(payload.message || 'Корзина обновлена');
+                } catch (error) {
+                    showFlashToast('Не удалось обновить корзину', 'error');
+                } finally {
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                    }
+                }
+            });
+        });
+    </script>
 
     @stack('scripts')
 </body>

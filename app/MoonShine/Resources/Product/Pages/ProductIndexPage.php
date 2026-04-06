@@ -5,21 +5,20 @@ declare(strict_types=1);
 namespace App\MoonShine\Resources\Product\Pages;
 
 use App\MoonShine\Resources\Category\CategoryResource;
+use App\MoonShine\Resources\Product\ProductResource;
+use MoonShine\Contracts\UI\ComponentContract;
+use MoonShine\Contracts\UI\FieldContract;
 use MoonShine\Laravel\Fields\Relationships\BelongsTo;
 use MoonShine\Laravel\Pages\Crud\IndexPage;
-use MoonShine\Contracts\UI\ComponentContract;
-use MoonShine\UI\Components\Table\TableBuilder;
-use MoonShine\Contracts\UI\FieldContract;
-use MoonShine\Laravel\QueryTags\QueryTag;
-use MoonShine\UI\Components\Metrics\Wrapped\Metric;
-use MoonShine\UI\Fields\ID;
-use App\MoonShine\Resources\Product\ProductResource;
 use MoonShine\Support\ListOf;
+use MoonShine\UI\Components\Metrics\Wrapped\Metric;
+use MoonShine\UI\Components\Table\TableBuilder;
+use MoonShine\UI\Fields\ID;
 use MoonShine\UI\Fields\Image;
 use MoonShine\UI\Fields\Number;
+use MoonShine\UI\Fields\Switcher;
 use MoonShine\UI\Fields\Text;
 use Throwable;
-
 
 /**
  * @extends IndexPage<ProductResource>
@@ -46,8 +45,8 @@ class ProductIndexPage extends IndexPage
                 }),
             Text::make('Название', 'name')->sortable(),
             Text::make('SKU', 'sku'),
-            Number::make('Базовая цена, BYN', 'base_price')
-                ->sortable(),
+            Number::make('Базовая цена, BYN', 'base_price')->sortable(),
+            Switcher::make('Featured', 'featured'),
             BelongsTo::make('Категория', 'category', resource: CategoryResource::class)
                 ->sortable(),
         ];
@@ -66,16 +65,9 @@ class ProductIndexPage extends IndexPage
         return [
             Text::make('Название', 'name'),
             Text::make('SKU', 'sku'),
+            Switcher::make('Featured', 'featured'),
             BelongsTo::make('Категория', 'category', resource: CategoryResource::class),
         ];
-    }
-
-    /**
-     * @return list<QueryTag>
-     */
-    protected function queryTags(): array
-    {
-        return [];
     }
 
     /**
@@ -86,11 +78,6 @@ class ProductIndexPage extends IndexPage
         return [];
     }
 
-    /**
-     * @param  TableBuilder  $component
-     *
-     * @return TableBuilder
-     */
     protected function modifyListComponent(ComponentContract $component): ComponentContract
     {
         return $component;

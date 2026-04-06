@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\MoonShine\Resources\OrderItem\Pages;
 
-use MoonShine\Laravel\Pages\Crud\DetailPage;
-use MoonShine\Contracts\UI\ComponentContract;
-use MoonShine\UI\Components\Table\TableBuilder;
-use MoonShine\Contracts\UI\FieldContract;
+use App\MoonShine\Resources\Order\OrderResource;
 use App\MoonShine\Resources\OrderItem\OrderItemResource;
-use MoonShine\Support\ListOf;
+use MoonShine\Contracts\UI\FieldContract;
+use MoonShine\Laravel\Fields\Relationships\BelongsTo;
+use MoonShine\Laravel\Pages\Crud\DetailPage;
 use MoonShine\UI\Fields\ID;
-use Throwable;
-
+use MoonShine\UI\Fields\Number;
+use MoonShine\UI\Fields\Text;
+use MoonShine\UI\Fields\Textarea;
 
 /**
  * @extends DetailPage<OrderItemResource>
@@ -20,60 +20,21 @@ use Throwable;
 class OrderItemDetailPage extends DetailPage
 {
     /**
-     * @return list<FieldContract>
+     * @return iterable<FieldContract>
      */
     protected function fields(): iterable
     {
         return [
             ID::make(),
-        ];
-    }
-
-    protected function buttons(): ListOf
-    {
-        return parent::buttons();
-    }
-
-    /**
-     * @param  TableBuilder  $component
-     *
-     * @return TableBuilder
-     */
-    protected function modifyDetailComponent(ComponentContract $component): ComponentContract
-    {
-        return $component;
-    }
-
-    /**
-     * @return list<ComponentContract>
-     * @throws Throwable
-     */
-    protected function topLayer(): array
-    {
-        return [
-            ...parent::topLayer()
-        ];
-    }
-
-    /**
-     * @return list<ComponentContract>
-     * @throws Throwable
-     */
-    protected function mainLayer(): array
-    {
-        return [
-            ...parent::mainLayer()
-        ];
-    }
-
-    /**
-     * @return list<ComponentContract>
-     * @throws Throwable
-     */
-    protected function bottomLayer(): array
-    {
-        return [
-            ...parent::bottomLayer()
+            BelongsTo::make('Заказ', 'order', resource: OrderResource::class),
+            Text::make('Название', 'name'),
+            Text::make('Тип позиции', 'item_type'),
+            Number::make('ID товара', 'item_id'),
+            Text::make('SKU', 'sku'),
+            Number::make('Цена', 'price'),
+            Number::make('Количество', 'quantity'),
+            Number::make('Сумма', 'line_total'),
+            Textarea::make('Meta', 'meta'),
         ];
     }
 }

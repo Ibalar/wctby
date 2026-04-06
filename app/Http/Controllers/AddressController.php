@@ -13,9 +13,12 @@ class AddressController extends Controller
      */
     public function index()
     {
+        $user = Auth::user();
         $addresses = Auth::user()->addresses()->orderBy('is_default', 'desc')->get();
+        $totalOrders = $user->orders()->count();
+        $totalSpent = $user->orders()->where('status', 'completed')->sum('total');
 
-        return view('profile.addresses', compact('addresses'));
+        return view('profile.addresses', compact('addresses', 'user', 'totalOrders', 'totalSpent'));
     }
 
     /**

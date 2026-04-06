@@ -8,6 +8,7 @@ use App\MoonShine\Resources\PaymentMethod\PaymentMethodResource;
 use MoonShine\Contracts\UI\FieldContract;
 use MoonShine\Laravel\Pages\Crud\IndexPage;
 use MoonShine\UI\Fields\ID;
+use MoonShine\UI\Fields\Number;
 use MoonShine\UI\Fields\Switcher;
 use MoonShine\UI\Fields\Text;
 
@@ -23,10 +24,10 @@ class PaymentMethodIndexPage extends IndexPage
     {
         return [
             ID::make(),
-            Text::make('Название', 'name')->link(),
+            Text::make('Название', 'name'),
             Text::make('Код', 'code'),
             Switcher::make('Активен', 'is_active')->badge(),
-            Text::make('Порядок', 'sort_order'),
+            Number::make('Сортировка', 'sort_order'),
         ];
     }
 
@@ -36,6 +37,8 @@ class PaymentMethodIndexPage extends IndexPage
     protected function filters(): iterable
     {
         return [
+            Text::make('Название', 'name'),
+            Text::make('Код', 'code'),
             Switcher::make('Активен', 'is_active'),
         ];
     }

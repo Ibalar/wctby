@@ -83,8 +83,8 @@
 
                 <form action="{{ route('cart.add') }}" method="POST" class="ms-2">
                     @csrf
-                    <input type="hidden" name="purchasable_type" value="product">
-                    <input type="hidden" name="purchasable_id" value="{{ $product->id }}">
+                    <input type="hidden" name="purchasable_type" value="{{ $firstSku ? 'sku' : 'product' }}">
+                    <input type="hidden" name="purchasable_id" value="{{ $firstSku?->id ?? $product->id }}">
                     <input type="hidden" name="quantity" value="1">
                     <button type="submit" class="product-card-button btn btn-icon btn-secondary animate-slide-end" aria-label="Добавить в корзину">
                         <i class="ci-shopping-cart fs-base animate-target"></i>

@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace App\MoonShine\Resources\OrderItem\Pages;
 
-use MoonShine\Laravel\Pages\Crud\IndexPage;
-use MoonShine\Contracts\UI\ComponentContract;
-use MoonShine\UI\Components\Table\TableBuilder;
-use MoonShine\Contracts\UI\FieldContract;
-use MoonShine\Laravel\QueryTags\QueryTag;
-use MoonShine\UI\Components\Metrics\Wrapped\Metric;
-use MoonShine\UI\Fields\ID;
+use App\Models\OrderItem;
+use App\MoonShine\Resources\Order\OrderResource;
 use App\MoonShine\Resources\OrderItem\OrderItemResource;
-use MoonShine\Support\ListOf;
-use Throwable;
-
+use MoonShine\Contracts\UI\FieldContract;
+use MoonShine\Laravel\Fields\Relationships\BelongsTo;
+use MoonShine\Laravel\Pages\Crud\IndexPage;
+use MoonShine\Laravel\QueryTags\QueryTag;
+use MoonShine\UI\Fields\ID;
+use MoonShine\UI\Fields\Number;
+use MoonShine\UI\Fields\Text;
 
 /**
  * @extends IndexPage<OrderItemResource>
@@ -24,26 +23,32 @@ class OrderItemIndexPage extends IndexPage
     protected bool $isLazy = true;
 
     /**
-     * @return list<FieldContract>
+     * @return iterable<FieldContract>
      */
     protected function fields(): iterable
     {
         return [
             ID::make(),
+            BelongsTo::make('Заказ', 'order', resource: OrderResource::class),
+            Text::make('Название', 'name'),
+            Text::make('Тип позиции', 'item_type'),
+            Text::make('SKU', 'sku'),
+            Number::make('Цена', 'price'),
+            Number::make('Количество', 'quantity'),
+            Number::make('Сумма', 'line_total'),
         ];
     }
 
-    protected function buttons(): ListOf
-    {
-        return parent::buttons();
-    }
-
     /**
-     * @return list<FieldContract>
+     * @return iterable<FieldContract>
      */
     protected function filters(): iterable
     {
-        return [];
+        return [
+            Text::make('Название', 'name'),
+            Text::make('Тип позиции', 'item_type'),
+            Text::make('SKU', 'sku'),
+        ];
     }
 
     /**
@@ -51,57 +56,10 @@ class OrderItemIndexPage extends IndexPage
      */
     protected function queryTags(): array
     {
-        return [];
-    }
-
-    /**
-     * @return list<Metric>
-     */
-    protected function metrics(): array
-    {
-        return [];
-    }
-
-    /**
-     * @param  TableBuilder  $component
-     *
-     * @return TableBuilder
-     */
-    protected function modifyListComponent(ComponentContract $component): ComponentContract
-    {
-        return $component;
-    }
-
-    /**
-     * @return list<ComponentContract>
-     * @throws Throwable
-     */
-    protected function topLayer(): array
-    {
         return [
-            ...parent::topLayer()
-        ];
-    }
-
-    /**
-     * @return list<ComponentContract>
-     * @throws Throwable
-     */
-    protected function mainLayer(): array
-    {
-        return [
-            ...parent::mainLayer()
-        ];
-    }
-
-    /**
-     * @return list<ComponentContract>
-     * @throws Throwable
-     */
-    protected function bottomLayer(): array
-    {
-        return [
-            ...parent::bottomLayer()
+            QueryTag::make('Все', fn ($query) => $query),
+            QueryTag::make('SKU', fn ($query) => $query->where('item_type', 'like', '%Sku%')),
+            QueryTag::make('Товары', fn ($query) => $query->where('item_type', 'like', '%Product%')),
         ];
     }
 }

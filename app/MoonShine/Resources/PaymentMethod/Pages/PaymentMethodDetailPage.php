@@ -29,7 +29,7 @@ class PaymentMethodDetailPage extends DetailPage
             Text::make('Код', 'code'),
             Textarea::make('Описание', 'description'),
             Switcher::make('Активен', 'is_active'),
-            Number::make('Порядок', 'sort_order'),
+            Number::make('Сортировка', 'sort_order'),
         ];
     }
 }

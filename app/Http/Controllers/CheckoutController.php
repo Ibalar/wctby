@@ -20,6 +20,7 @@ class CheckoutController extends Controller
         $cart = $this->cartService->getOrCreateCart($request);
         $items = $this->cartService->getItems($cart);
         $total = $this->cartService->getTotal($cart);
+        $savings = $this->cartService->getSavings($cart);
 
         $deliveryMethods = DeliveryMethod::query()
             ->where('is_active', true)
@@ -31,7 +32,19 @@ class CheckoutController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        return view('checkout.index', compact('cart', 'items', 'total', 'deliveryMethods', 'paymentMethods'));
+        $defaultDeliveryMethodId = old('delivery_method', $deliveryMethods->first()?->id);
+        $defaultPaymentMethodId = old('payment_method', $paymentMethods->first()?->id);
+
+        return view('checkout.index', compact(
+            'cart',
+            'items',
+            'total',
+            'savings',
+            'deliveryMethods',
+            'paymentMethods',
+            'defaultDeliveryMethodId',
+            'defaultPaymentMethodId',
+        ));
     }
 
     public function process(Request $request)
@@ -42,6 +55,13 @@ class CheckoutController extends Controller
         if ($items->isEmpty()) {
             return redirect()->route('cart.index')->with('error', 'Корзина пуста');
         }
+
+        $request->merge([
+            'delivery_method' => $request->input('delivery_method')
+                ?: DeliveryMethod::query()->where('is_active', true)->orderBy('sort_order')->value('id'),
+            'payment_method' => $request->input('payment_method')
+                ?: PaymentMethod::query()->where('is_active', true)->orderBy('sort_order')->value('id'),
+        ]);
 
         $validated = $request->validate([
             'customer_name' => ['required', 'string', 'max:255'],

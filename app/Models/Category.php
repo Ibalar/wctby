@@ -16,6 +16,7 @@ class Category extends Model implements HasMedia
         'name',
         'slug',
         'description',
+        'catalog_image',
         'sort_order',
         'is_active',
         'promo_active',
@@ -139,6 +140,17 @@ class Category extends Model implements HasMedia
         }
 
         return $data;
+    }
+
+    public function getCatalogImageUrlAttribute(): ?string
+    {
+        if (!$this->catalog_image) {
+            return null;
+        }
+
+        return str_starts_with($this->catalog_image, 'http')
+            ? $this->catalog_image
+            : Storage::url($this->catalog_image);
     }
 
 

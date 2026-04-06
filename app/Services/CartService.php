@@ -118,7 +118,57 @@ class CartService
      */
     public function getItems(Cart $cart)
     {
-        return $cart->items()->with('purchasable.product')->get();
+        $items = $cart->items()->with('purchasable')->get();
+
+        $items->loadMorph('purchasable', [
+            Sku::class => ['product.media', 'attributeOptions.attribute'],
+            Product::class => ['media'],
+        ]);
+
+        return $items;
+    }
+
+    /**
+     * РџРѕР»СѓС‡РёС‚СЊ СЌРєРѕРЅРѕРјРёСЋ РїРѕ РєРѕСЂР·РёРЅРµ РѕС‚ Р·Р°С‡С‘СЂРєРЅСѓС‚С‹С… С†РµРЅ
+     */
+    public function getSavings(Cart $cart): float
+    {
+        return $this->getItems($cart)->sum(function (CartItem $item) {
+            $oldPrice = $this->getOldPriceForItem($item);
+
+            if (!$oldPrice || $oldPrice <= $item->price) {
+                return 0;
+            }
+
+            return ($oldPrice - $item->price) * $item->quantity;
+        });
+    }
+
+    public function getOldPriceForItem(CartItem $item): ?float
+    {
+        $purchasable = $item->purchasable;
+
+        if ($purchasable instanceof Sku) {
+            return $purchasable->old_price ? (float) $purchasable->old_price : null;
+        }
+
+        return null;
+    }
+
+    public function resolveItemProduct(CartItem $item): ?Product
+    {
+        $purchasable = $item->purchasable;
+
+        if ($purchasable instanceof Sku) {
+            return $purchasable->product;
+        }
+
+        return $purchasable instanceof Product ? $purchasable : null;
+    }
+
+    public function itemBelongsToCart(CartItem $item, Cart $cart): bool
+    {
+        return (int) $item->cart_id === (int) $cart->id;
     }
 
     /**

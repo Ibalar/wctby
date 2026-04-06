@@ -7,6 +7,7 @@ use App\Http\Responses\PasswordResetResponse;
 use App\Http\Responses\RegisterResponse;
 use App\Http\Responses\TwoFactorLoginResponse;
 use App\Models\Category;
+use App\Services\CartService;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
@@ -39,8 +40,28 @@ class AppServiceProvider extends ServiceProvider
                 ->orderBy('sort_order')
                 ->get();
 
-            // Обратите внимание: здесь передается $categories
             $view->with('categories', $categories);
+        });
+
+        View::composer(['partials.header', 'partials.cart-offcanvas'], function ($view) {
+            $request = request();
+
+            if (!$request || !$request->hasSession()) {
+                $view->with('cartItems', collect())
+                    ->with('cartCount', 0)
+                    ->with('cartTotal', 0)
+                    ->with('cartSavings', 0);
+
+                return;
+            }
+
+            $cartService = app(CartService::class);
+            $cart = $cartService->getOrCreateCart($request);
+
+            $view->with('cartItems', $cartService->getItems($cart))
+                ->with('cartCount', $cartService->getItemsCount($cart))
+                ->with('cartTotal', $cartService->getTotal($cart))
+                ->with('cartSavings', $cartService->getSavings($cart));
         });
     }
 }

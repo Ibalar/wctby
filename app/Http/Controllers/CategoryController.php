@@ -12,13 +12,44 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::with('children')
+        $categories = Category::with([
+                'children' => fn ($query) => $query
+                    ->where('is_active', true)
+                    ->orderBy('sort_order'),
+                'media',
+            ])
             ->where('is_active', true)
             ->whereNull('parent_id')
             ->orderBy('sort_order')
             ->get();
 
-        return view('catalog.index', compact('categories'));
+        $categoryIds = $categories->pluck('id');
+        $catalogCategoryIds = $categories
+            ->flatMap(fn (Category $category) => $category->getDescendantIds())
+            ->unique()
+            ->values();
+        $directCounts = Product::query()
+            ->selectRaw('category_id, COUNT(*) as total')
+            ->where('is_active', true)
+            ->groupBy('category_id')
+            ->pluck('total', 'category_id');
+
+        $categories->each(function (Category $category) use ($directCounts) {
+            $category->direct_products_count = $directCounts[$category->id] ?? 0;
+            $category->children->each(function (Category $child) use ($directCounts) {
+                $child->direct_products_count = $directCounts[$child->id] ?? 0;
+            });
+        });
+
+        $featuredProducts = Product::with(['media', 'skus' => fn ($query) => $query->where('is_active', true)])
+            ->where('is_active', true)
+            ->where('featured', true)
+            ->whereIn('category_id', $catalogCategoryIds)
+            ->latest()
+            ->limit(8)
+            ->get();
+
+        return view('catalog.index', compact('categories', 'featuredProducts'));
     }
 
     public function show($slug, BreadcrumbService $breadcrumbsService)

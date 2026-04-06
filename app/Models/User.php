@@ -38,6 +38,29 @@ class User extends Authenticatable
         ];
     }
 
+    public function getIsEmailVerifiedAttribute(): bool
+    {
+        return $this->email_verified_at !== null;
+    }
+
+    public function setEmailVerifiedAtAttribute($value): void
+    {
+        if ($value === null || $value === '' || $value === false || $value === 0 || $value === '0') {
+            $this->attributes['email_verified_at'] = null;
+
+            return;
+        }
+
+        if ($value === true || $value === 1 || $value === '1') {
+            $current = $this->attributes['email_verified_at'] ?? null;
+            $this->attributes['email_verified_at'] = $current ?: $this->fromDateTime(now());
+
+            return;
+        }
+
+        $this->attributes['email_verified_at'] = $this->fromDateTime($value);
+    }
+
     public function socialAccounts()
     {
         return $this->hasMany(SocialAccount::class);

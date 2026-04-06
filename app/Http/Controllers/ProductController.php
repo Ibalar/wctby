@@ -13,12 +13,17 @@ class ProductController extends Controller
      */
     public function show($slug, BreadcrumbService $breadcrumbsService)
     {
-        $product = Product::with(['category', 'media'])
+        $product = Product::with([
+                'category',
+                'media',
+                'skus.attributeOptions.attribute',
+                'attributeOptions.attribute',
+            ])
             ->where('slug', $slug)
             ->where('is_active', true)
             ->firstOrFail();
 
-        $relatedProducts = Product::with('media')
+        $relatedProducts = Product::with(['media', 'skus'])
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->where('is_active', true)

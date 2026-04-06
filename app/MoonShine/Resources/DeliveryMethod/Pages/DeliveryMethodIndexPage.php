@@ -24,11 +24,11 @@ class DeliveryMethodIndexPage extends IndexPage
     {
         return [
             ID::make(),
-            Text::make('Название', 'name')->link(),
+            Text::make('Название', 'name'),
             Text::make('Код', 'code'),
             Number::make('Цена', 'price'),
             Switcher::make('Активен', 'is_active')->badge(),
-            Text::make('Порядок', 'sort_order'),
+            Number::make('Сортировка', 'sort_order'),
         ];
     }
 
@@ -38,6 +38,8 @@ class DeliveryMethodIndexPage extends IndexPage
     protected function filters(): iterable
     {
         return [
+            Text::make('Название', 'name'),
+            Text::make('Код', 'code'),
             Switcher::make('Активен', 'is_active'),
         ];
     }

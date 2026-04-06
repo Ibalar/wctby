@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace App\MoonShine\Resources\OrderItem;
 
-use Illuminate\Database\Eloquent\Model;
 use App\Models\OrderItem;
-use App\MoonShine\Resources\OrderItem\Pages\OrderItemIndexPage;
-use App\MoonShine\Resources\OrderItem\Pages\OrderItemFormPage;
 use App\MoonShine\Resources\OrderItem\Pages\OrderItemDetailPage;
-
-use MoonShine\Laravel\Resources\ModelResource;
+use App\MoonShine\Resources\OrderItem\Pages\OrderItemFormPage;
+use App\MoonShine\Resources\OrderItem\Pages\OrderItemIndexPage;
 use MoonShine\Contracts\Core\PageContract;
+use MoonShine\Laravel\Resources\ModelResource;
 
 /**
  * @extends ModelResource<OrderItem, OrderItemIndexPage, OrderItemFormPage, OrderItemDetailPage>
@@ -20,8 +18,10 @@ class OrderItemResource extends ModelResource
 {
     protected string $model = OrderItem::class;
 
-    protected string $title = 'OrderItems';
-    
+    protected string $title = 'Позиции заказов';
+
+    protected string $column = 'name';
+
     /**
      * @return list<class-string<PageContract>>
      */

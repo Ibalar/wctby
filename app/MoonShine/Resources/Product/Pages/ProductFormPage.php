@@ -4,34 +4,30 @@ declare(strict_types=1);
 
 namespace App\MoonShine\Resources\Product\Pages;
 
-use App\Models\AttributeOption;
-use App\MoonShine\Resources\Attribute\AttributeResource;
-use Illuminate\Support\Arr;
 use App\MoonShine\Resources\AttributeOption\AttributeOptionResource;
 use App\MoonShine\Resources\Category\CategoryResource;
+use App\MoonShine\Resources\Product\ProductResource;
 use App\MoonShine\Resources\ProductAttributeOption\ProductAttributeOptionResource;
+use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
+use MoonShine\Contracts\Core\TypeCasts\DataWrapperContract;
+use MoonShine\Contracts\UI\ComponentContract;
+use MoonShine\Contracts\UI\FieldContract;
+use MoonShine\Contracts\UI\FormBuilderContract;
 use MoonShine\Laravel\Fields\Relationships\BelongsTo;
-use MoonShine\Laravel\Fields\Relationships\BelongsToMany;
 use MoonShine\Laravel\Fields\Relationships\RelationRepeater;
 use MoonShine\Laravel\Fields\Slug;
 use MoonShine\Laravel\Pages\Crud\FormPage;
-use MoonShine\Contracts\UI\ComponentContract;
-use MoonShine\Contracts\UI\FormBuilderContract;
+use MoonShine\Support\ListOf;
 use MoonShine\TinyMce\Fields\TinyMce;
 use MoonShine\UI\Components\FormBuilder;
-use MoonShine\Contracts\UI\FieldContract;
-use MoonShine\Contracts\Core\TypeCasts\DataWrapperContract;
-use App\MoonShine\Resources\Product\ProductResource;
-use MoonShine\Support\ListOf;
+use MoonShine\UI\Components\Layout\Box;
 use MoonShine\UI\Components\Layout\Column;
 use MoonShine\UI\Components\Layout\Grid;
 use MoonShine\UI\Components\Tabs;
 use MoonShine\UI\Components\Tabs\Tab;
 use MoonShine\UI\Fields\Color;
-use MoonShine\UI\Fields\Enum;
 use MoonShine\UI\Fields\ID;
-use MoonShine\UI\Components\Layout\Box;
 use MoonShine\UI\Fields\Image;
 use MoonShine\UI\Fields\Json;
 use MoonShine\UI\Fields\Number;
@@ -41,7 +37,6 @@ use MoonShine\UI\Fields\Switcher;
 use MoonShine\UI\Fields\Text;
 use MoonShine\UI\Fields\Textarea;
 use Throwable;
-
 
 /**
  * @extends FormPage<ProductResource>
@@ -55,113 +50,95 @@ class ProductFormPage extends FormPage
     {
         return [
             Box::make([
-
                 Tabs::make([
                     Tab::make('Основные данные', [
                         ID::make(),
                         Text::make('Название', 'name')->required(),
 
                         Grid::make([
-                            Column::make(
-                                [
-                                    Slug::make('Slug', 'slug')
-                                        ->required()
-                                        ->unique()
-                                        ->from('name')
-                                        ->live()
-                                        ->locked()
-                                        ->hint('Слаг формируется автоматически на основе названия товара после СОХРАНЕНИЯ заполненной карточки. При необходимости дальнейшего редактирования нажмите на иконку замка и отредактируйте.'),
-                                ],
-                                colSpan: 6,
-                            ),
-                            Column::make(
-                                [
-                                    Text::make('SKU', 'sku')
-                                        ->required()
-                                        ->hint('Уникальный код товара/Артикул'),
-                                ],
-                                colSpan: 6,
-                            ),
-                            Column::make(
-                                [
-                                    BelongsTo::make('Категория', 'category', resource: CategoryResource::class)
-                                        ->nullable()
-                                        ->searchable()
-                                        ->required(),
-                                ],
-                                colSpan: 6,
-                            ),
-                            Column::make(
-                                [
-                                    Select::make('Тип товара', 'type')
-                                        ->options(['simple' => 'Обычный', 'bundle' => 'Комплект'])
-                                        ->default('simple'),
-                                ],
-                                colSpan: 6,
-                            )
+                            Column::make([
+                                Slug::make('Slug', 'slug')
+                                    ->required()
+                                    ->unique()
+                                    ->from('name')
+                                    ->live()
+                                    ->locked()
+                                    ->hint('Слаг формируется автоматически на основе названия товара после сохранения карточки.'),
+                            ], colSpan: 6),
+                            Column::make([
+                                Text::make('SKU', 'sku')
+                                    ->required()
+                                    ->hint('Уникальный код товара / артикул'),
+                            ], colSpan: 6),
+                            Column::make([
+                                BelongsTo::make('Категория', 'category', resource: CategoryResource::class)
+                                    ->nullable()
+                                    ->searchable()
+                                    ->required(),
+                            ], colSpan: 6),
+                            Column::make([
+                                Select::make('Тип товара', 'type')
+                                    ->options([
+                                        'simple' => 'Обычный',
+                                        'bundle' => 'Комплект',
+                                    ])
+                                    ->default('simple'),
+                            ], colSpan: 6),
                         ]),
+
                         Number::make('Базовая цена', 'base_price')->min(0)->step(0.01),
                         Json::make('Флаги', 'flags')
                             ->fields([
                                 Position::make(),
-                                Text::make('Текст метки', 'title')
-                                    ->default('Новинка'),
-                                Color::make('Цвет текста', 'color_text')
-                                    ->default('#FFFFFF'),
-                                Color::make('Цвет фона', 'color')
-                                    ->default('#2f6ed5'),
+                                Text::make('Текст метки', 'title')->default('Новинка'),
+                                Color::make('Цвет текста', 'color_text')->default('#FFFFFF'),
+                                Color::make('Цвет фона', 'color')->default('#2f6ed5'),
                                 Switcher::make('Active'),
                             ])
                             ->nullable()
                             ->removable()
-                        ->hint('С помощью флагов вы можете вывести метки на карточке товара - Новинка, Хит продаж, Скидка и т.д.'),
+                            ->hint('Метки на карточке товара: Новинка, Хит продаж, Скидка и т.д.'),
                         Switcher::make('Активен', 'is_active')->default(true),
+                        Switcher::make('Featured', 'featured')
+                            ->default(false)
+                            ->hint('Используется в витринных блоках каталога и других выделенных списках'),
                     ]),
+
                     Tab::make('Варианты', [
                         RelationRepeater::make('SKU / варианты', 'skus')
                             ->fields([
                                 ID::make(),
-
                                 Text::make('SKU', 'sku')->required(),
-
-                                Number::make('Цена', 'price')
-                                    ->min(0)->step(0.01)->required(),
-
-                                Number::make('Старая цена', 'old_price')
-                                    ->min(0)->step(0.01),
-
-                                Number::make('Остаток', 'stock')
-                                    ->min(0)->required(),
-
-                                Switcher::make('Активен', 'is_active')
-                                    ->default(true),
-
+                                Number::make('Цена', 'price')->min(0)->step(0.01)->required(),
+                                Number::make('Старая цена', 'old_price')->min(0)->step(0.01),
+                                Number::make('Остаток', 'stock')->min(0)->required(),
+                                Switcher::make('Активен', 'is_active')->default(true),
                             ])
                             ->creatable()
                             ->removable(),
                     ]),
+
                     Tab::make('Описание', [
                         Textarea::make('Краткое описание', 'short_description'),
                         TinyMce::make('Описание', 'description'),
                     ]),
+
                     Tab::make('Изображения', [
                         Image::make('Изображения', 'images')
                             ->multiple()
                             ->removable(),
                     ]),
-                    Tab::make('СЕО', [
+
+                    Tab::make('SEO', [
                         Text::make('Meta title', 'meta_title')
                             ->hint('Если пусто — можно подставлять название товара на фронте'),
-
                         Textarea::make('Meta description', 'meta_description')
                             ->hint('Краткое описание 120–160 символов'),
-
                         Text::make('Meta keywords', 'meta_keywords')
                             ->hint('Ключевые слова через запятую'),
                     ]),
 
                     Tab::make('Характеристики', [
-                        // RelationRepeater для характеристик через ProductAttributeOption
                         RelationRepeater::make(
                             'Характеристики',
                             'productAttributes',
@@ -172,13 +149,10 @@ class ProductFormPage extends FormPage
                                     'Значение',
                                     'attributeOption',
                                     resource: AttributeOptionResource::class
-                                )
-                                    ->searchable()
+                                )->searchable(),
                             ])
                             ->creatable()
-                            ->removable(),  // позволяет удалять строки
-
-                        // Json-поле для свойств (бывший ProductProperty)
+                            ->removable(),
                         Json::make('Свойства', 'properties')
                             ->fields([
                                 Position::make(),
@@ -208,14 +182,11 @@ class ProductFormPage extends FormPage
     protected function rules(DataWrapperContract $item): array
     {
         $rules = [
-            // SKU товара
             'sku' => [
                 'required',
                 'string',
                 Rule::unique('products', 'sku')->ignore($item->id),
             ],
-
-            // базовые правила для всех строк репитера
             'skus.*.sku' => [
                 'required',
                 'string',
@@ -224,10 +195,8 @@ class ProductFormPage extends FormPage
 
         $skus = request('skus', []);
 
-        // Для каждой строки добавляем своё unique-правило
         foreach ($skus as $index => $row) {
-            $id = Arr::get($row, 'id'); // id конкретной строки репитера (SKU)
-
+            $id = Arr::get($row, 'id');
             $rules["skus.$index.sku"][] = Rule::unique('skus', 'sku')->ignore($id);
         }
 
@@ -242,11 +211,6 @@ class ProductFormPage extends FormPage
         ];
     }
 
-    /**
-     * @param  FormBuilder  $component
-     *
-     * @return FormBuilder
-     */
     protected function modifyFormComponent(FormBuilderContract $component): FormBuilderContract
     {
         return $component;
