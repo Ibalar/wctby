@@ -196,21 +196,12 @@
 
             <!-- Social login -->
             <div class="d-flex flex-column flex-sm-row gap-3 pb-4">
-
-                <a href="{{ url('/auth/google/redirect') }}" class="btn btn-lg btn-outline-secondary w-100">
-                    <i class="ci-google me-1"></i>
-                    Google
-                </a>
-
-                <a href="{{ url('/auth/facebook/redirect') }}" class="btn btn-lg btn-outline-secondary w-100">
-                    <i class="ci-facebook me-1"></i>
-                    Facebook
-                </a>
-
-                <a href="{{ url('/auth/apple/redirect') }}" class="btn btn-lg btn-outline-secondary w-100">
-                    <i class="ci-apple me-1"></i>
-                    Apple
-                </a>
+                @foreach(config('social_auth.providers', []) as $provider => $meta)
+                    <a href="{{ route('social.redirect', $provider) }}" class="btn btn-lg btn-outline-secondary w-100">
+                        <i class="{{ $meta['icon'] ?? 'ci-link' }} me-1"></i>
+                        {{ $meta['label'] ?? ucfirst($provider) }}
+                    </a>
+                @endforeach
 
             </div>
 

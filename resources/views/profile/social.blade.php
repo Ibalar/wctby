@@ -31,6 +31,9 @@
             ],
         ];
     @endphp
+    @php
+        $providerMeta = config('social_auth.providers', $providerMeta ?? []);
+    @endphp
 
     <div class="container py-5 mt-n2 mt-sm-0">
         <div class="row pt-md-2 pt-lg-3 pb-sm-2 pb-md-3 pb-lg-4 pb-xl-5">

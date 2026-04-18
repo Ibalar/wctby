@@ -33,17 +33,30 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        View::composer('*', function ($view) {
-            $categories = Category::with('children')
-                ->whereNull('parent_id')
-                ->where('is_active', true)
-                ->orderBy('sort_order')
-                ->get();
+        View::composer('partials.header', function ($view) {
+            static $categories = null;
+
+            if ($categories === null) {
+                $categories = Category::with([
+                        'children' => fn ($query) => $query
+                            ->where('is_active', true)
+                            ->orderBy('sort_order')
+                            ->with('promoProduct:id,slug'),
+                        'promoProduct:id,slug',
+                    ])
+                    ->whereNull('parent_id')
+                    ->where('is_active', true)
+                    ->orderBy('sort_order')
+                    ->get();
+            }
 
             $view->with('categories', $categories);
         });
 
         View::composer(['partials.header', 'partials.cart-offcanvas'], function ($view) {
+            static $summary = null;
+            static $summaryCartId = null;
+
             $request = request();
 
             if (!$request || !$request->hasSession()) {
@@ -57,11 +70,17 @@ class AppServiceProvider extends ServiceProvider
 
             $cartService = app(CartService::class);
             $cart = $cartService->getOrCreateCart($request);
+            $cartId = (int) $cart->id;
 
-            $view->with('cartItems', $cartService->getItems($cart))
-                ->with('cartCount', $cartService->getItemsCount($cart))
-                ->with('cartTotal', $cartService->getTotal($cart))
-                ->with('cartSavings', $cartService->getSavings($cart));
+            if ($summary === null || $summaryCartId !== $cartId) {
+                $summary = $cartService->getSummary($cart);
+                $summaryCartId = $cartId;
+            }
+
+            $view->with('cartItems', $summary['items'])
+                ->with('cartCount', $summary['count'])
+                ->with('cartTotal', $summary['total'])
+                ->with('cartSavings', $summary['savings']);
         });
     }
 }

@@ -71,6 +71,32 @@
     <!-- Header -->
     @include('partials.header')
 
+    @auth
+        @php($authUser = auth()->user())
+        @if(
+            $authUser
+            && method_exists($authUser, 'hasVerifiedEmail')
+            && ! $authUser->hasVerifiedEmail()
+            && ! request()->routeIs('verification.notice')
+        )
+            <section class="container pt-3">
+                <div class="alert alert-warning d-md-flex align-items-center justify-content-between gap-3 mb-0" role="alert">
+                    <div>
+                        <div class="fw-semibold mb-1">Подтвердите email, чтобы открыть все возможности профиля</div>
+                        <div class="small mb-0">Мы отправим ссылку повторно на адрес {{ $authUser->email }}.</div>
+                        @if (session('status') === 'verification-link-sent')
+                            <div class="small text-success mt-2">Ссылка для подтверждения отправлена повторно.</div>
+                        @endif
+                    </div>
+                    <form method="POST" action="{{ route('verification.send') }}" class="mt-3 mt-md-0">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-warning">Отправить письмо</button>
+                    </form>
+                </div>
+            </section>
+        @endif
+    @endauth
+
     <!-- Main content -->
     <main class="content-wrapper">
         @yield('content')

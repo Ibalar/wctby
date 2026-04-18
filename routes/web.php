@@ -42,7 +42,7 @@ Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.in
 Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process');
 Route::get('/checkout/success/{orderNumber}', [CheckoutController::class, 'success'])->name('checkout.success');
 
-Route::middleware('guest')->group(function () {
+Route::middleware('throttle:20,1')->group(function () {
     Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirect'])
         ->name('social.redirect');
     Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'])
@@ -59,16 +59,19 @@ Route::middleware('auth')->prefix('profile')->name('profile.')->group(function (
     Route::get('/edit', [ProfileController::class, 'edit'])->name('edit');
     Route::put('/', [ProfileController::class, 'update'])->name('update');
     Route::delete('/avatar', [ProfileController::class, 'deleteAvatar'])->name('avatar.delete');
-    Route::get('/orders', [ProfileController::class, 'orders'])->name('orders');
-    Route::get('/orders/{order}', [ProfileController::class, 'orderShow'])->name('order');
     Route::get('/security', [ProfileController::class, 'security'])->name('security');
     Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password.update');
     Route::get('/social', [ProfileController::class, 'socialAccounts'])->name('social');
     Route::delete('/social/{provider}', [ProfileController::class, 'unlinkSocial'])->name('social.unlink');
 
-    Route::get('/addresses', [AddressController::class, 'index'])->name('addresses');
-    Route::post('/addresses', [AddressController::class, 'store'])->name('addresses.store');
-    Route::put('/addresses/{address}', [AddressController::class, 'update'])->name('addresses.update');
-    Route::delete('/addresses/{address}', [AddressController::class, 'destroy'])->name('addresses.destroy');
-    Route::post('/addresses/{address}/default', [AddressController::class, 'setDefault'])->name('addresses.default');
+    Route::middleware('verified')->group(function () {
+        Route::get('/orders', [ProfileController::class, 'orders'])->name('orders');
+        Route::get('/orders/{order}', [ProfileController::class, 'orderShow'])->name('order');
+
+        Route::get('/addresses', [AddressController::class, 'index'])->name('addresses');
+        Route::post('/addresses', [AddressController::class, 'store'])->name('addresses.store');
+        Route::put('/addresses/{address}', [AddressController::class, 'update'])->name('addresses.update');
+        Route::delete('/addresses/{address}', [AddressController::class, 'destroy'])->name('addresses.destroy');
+        Route::post('/addresses/{address}/default', [AddressController::class, 'setDefault'])->name('addresses.default');
+    });
 });

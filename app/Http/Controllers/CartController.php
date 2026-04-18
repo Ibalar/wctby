@@ -19,12 +19,15 @@ class CartController extends Controller
     public function index(Request $request)
     {
         $cart = $this->cartService->getOrCreateCart($request);
-        $items = $this->cartService->getItems($cart);
-        $total = $this->cartService->getTotal($cart);
-        $count = $this->cartService->getItemsCount($cart);
-        $savings = $this->cartService->getSavings($cart);
+        $summary = $this->cartService->getSummary($cart);
 
-        return view('cart.index', compact('cart', 'items', 'total', 'count', 'savings'));
+        return view('cart.index', [
+            'cart' => $cart,
+            'items' => $summary['items'],
+            'total' => $summary['total'],
+            'count' => $summary['count'],
+            'savings' => $summary['savings'],
+        ]);
     }
 
     public function add(Request $request)
@@ -104,10 +107,11 @@ class CartController extends Controller
     public function data(Request $request)
     {
         $cart = $this->cartService->getOrCreateCart($request);
+        $summary = $this->cartService->getSummary($cart);
 
         return response()->json([
-            'count' => $this->cartService->getItemsCount($cart),
-            'total' => $this->cartService->getTotal($cart),
+            'count' => $summary['count'],
+            'total' => $summary['total'],
         ]);
     }
 
@@ -123,21 +127,18 @@ class CartController extends Controller
     protected function cartJsonResponse(Request $request, string $message)
     {
         $cart = $this->cartService->getOrCreateCart($request);
-        $items = $this->cartService->getItems($cart);
-        $count = $this->cartService->getItemsCount($cart);
-        $total = $this->cartService->getTotal($cart);
-        $savings = $this->cartService->getSavings($cart);
+        $summary = $this->cartService->getSummary($cart);
 
         return response()->json([
             'message' => $message,
-            'count' => $count,
-            'total' => $total,
-            'savings' => $savings,
+            'count' => $summary['count'],
+            'total' => $summary['total'],
+            'savings' => $summary['savings'],
             'offcanvas_html' => view('partials.cart-offcanvas', [
-                'cartItems' => $items,
-                'cartCount' => $count,
-                'cartTotal' => $total,
-                'cartSavings' => $savings,
+                'cartItems' => $summary['items'],
+                'cartCount' => $summary['count'],
+                'cartTotal' => $summary['total'],
+                'cartSavings' => $summary['savings'],
             ])->render(),
         ]);
     }

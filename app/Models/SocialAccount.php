@@ -21,6 +21,11 @@ class SocialAccount extends Model
         'provider_refresh_token',
     ];
 
+    protected $casts = [
+        'provider_token' => 'encrypted',
+        'provider_refresh_token' => 'encrypted',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -43,11 +48,11 @@ class SocialAccount extends Model
     {
         return static::updateOrCreate(
             [
+                'user_id' => $userId,
                 'provider' => $provider,
-                'provider_id' => $data['provider_id'],
             ],
             [
-                'user_id' => $userId,
+                'provider_id' => $data['provider_id'],
                 'nickname' => $data['nickname'] ?? null,
                 'avatar' => $data['avatar'] ?? null,
                 'provider_token' => $data['token'] ?? null,

@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Sku;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class CartService
@@ -110,7 +111,7 @@ class CartService
      */
     public function getTotal(Cart $cart): float
     {
-        return $cart->items->sum(fn($item) => $item->price * $item->quantity);
+        return $this->calculateTotal($this->getItems($cart));
     }
 
     /**
@@ -133,15 +134,7 @@ class CartService
      */
     public function getSavings(Cart $cart): float
     {
-        return $this->getItems($cart)->sum(function (CartItem $item) {
-            $oldPrice = $this->getOldPriceForItem($item);
-
-            if (!$oldPrice || $oldPrice <= $item->price) {
-                return 0;
-            }
-
-            return ($oldPrice - $item->price) * $item->quantity;
-        });
+        return $this->calculateSavings($this->getItems($cart));
     }
 
     public function getOldPriceForItem(CartItem $item): ?float
@@ -218,6 +211,57 @@ class CartService
      */
     public function getItemsCount(Cart $cart): int
     {
-        return $cart->items()->sum('quantity');
+        return $this->calculateCount($this->getItems($cart));
+    }
+
+    /**
+     * Получить сводку корзины без повторных запросов.
+     *
+     * @return array{items: Collection<int, CartItem>, count: int, total: float, savings: float}
+     */
+    public function getSummary(Cart $cart): array
+    {
+        $items = $this->getItems($cart);
+
+        return [
+            'items' => $items,
+            'count' => $this->calculateCount($items),
+            'total' => $this->calculateTotal($items),
+            'savings' => $this->calculateSavings($items),
+        ];
+    }
+
+    /**
+     * @param Collection<int, CartItem> $items
+     */
+    protected function calculateCount(Collection $items): int
+    {
+        return (int) $items->sum('quantity');
+    }
+
+    /**
+     * @param Collection<int, CartItem> $items
+     */
+    protected function calculateTotal(Collection $items): float
+    {
+        return (float) $items->sum(
+            fn (CartItem $item): float => (float) $item->price * (int) $item->quantity
+        );
+    }
+
+    /**
+     * @param Collection<int, CartItem> $items
+     */
+    protected function calculateSavings(Collection $items): float
+    {
+        return (float) $items->sum(function (CartItem $item): float {
+            $oldPrice = $this->getOldPriceForItem($item);
+
+            if (!$oldPrice || $oldPrice <= $item->price) {
+                return 0;
+            }
+
+            return (float) (($oldPrice - $item->price) * $item->quantity);
+        });
     }
 }

@@ -1,27 +1,38 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Подтверждение email</title>
-</head>
-<body>
-    <h1>Подтвердите ваш email</h1>
+@extends('layouts.main')
 
-    <p>Пожалуйста, подтвердите адрес электронной почты, перейдя по ссылке из письма.</p>
+@section('title', 'Подтверждение email')
 
-    @if (session('status') === 'verification-link-sent')
-        <p>Новая ссылка для подтверждения отправлена на ваш email.</p>
-    @endif
+@section('content')
+    <section class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-10 col-lg-8 col-xl-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4 p-md-5">
+                        <h1 class="h3 mb-3">Подтвердите ваш email</h1>
+                        <p class="text-body-secondary mb-4">
+                            Перейдите по ссылке из письма. Если письмо не пришло, отправьте ссылку повторно.
+                        </p>
 
-    <form method="POST" action="{{ route('verification.send') }}">
-        @csrf
-        <button type="submit">Отправить письмо повторно</button>
-    </form>
+                        @if (session('status') === 'verification-link-sent')
+                            <div class="alert alert-success" role="alert">
+                                Новая ссылка для подтверждения отправлена на вашу почту.
+                            </div>
+                        @endif
 
-    <form method="POST" action="{{ route('logout') }}">
-        @csrf
-        <button type="submit">Выйти</button>
-    </form>
-</body>
-</html>
+                        <div class="d-flex flex-column flex-sm-row gap-2">
+                            <form method="POST" action="{{ route('verification.send') }}">
+                                @csrf
+                                <button type="submit" class="btn btn-primary">Отправить письмо повторно</button>
+                            </form>
+
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="btn btn-outline-secondary">Выйти</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+@endsection

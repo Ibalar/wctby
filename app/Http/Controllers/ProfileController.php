@@ -3,12 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Services\SocialAccountService;
+use Throwable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
+    public function __construct(
+        protected SocialAccountService $socialAccounts
+    ) {}
+
     public function index()
     {
         $user = Auth::user()->load([
@@ -32,6 +39,7 @@ class ProfileController extends Controller
     public function update(Request $request)
     {
         $user = Auth::user();
+        $currentEmail = $user->email;
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -52,7 +60,35 @@ class ProfileController extends Controller
             $validated['avatar'] = $request->file('avatar')->store('avatars', 'public');
         }
 
+        $emailChanged = isset($validated['email']) && $validated['email'] !== $currentEmail;
         $user->update($validated);
+
+        if ($emailChanged) {
+            $user->forceFill(['email_verified_at' => null])->save();
+        }
+
+        $verificationNotificationSent = false;
+
+        if ($emailChanged && method_exists($user, 'sendEmailVerificationNotification')) {
+            try {
+                $user->sendEmailVerificationNotification();
+                $verificationNotificationSent = true;
+            } catch (Throwable) {
+                $verificationNotificationSent = false;
+            }
+        }
+
+        if ($emailChanged) {
+            if ($verificationNotificationSent) {
+                return redirect()
+                    ->route('profile.index')
+                    ->with('success', 'Профиль обновлён. Подтвердите новый email по ссылке в письме.');
+            }
+
+            return redirect()
+                ->route('profile.index')
+                ->with('error', 'Профиль обновлён, но письмо подтверждения отправить не удалось. Повторите отправку из баннера вверху страницы.');
+        }
 
         return redirect()->route('profile.index')->with('success', 'Профиль обновлён');
     }
@@ -106,8 +142,9 @@ class ProfileController extends Controller
 
         $user = Auth::user();
         $user->update([
-            'password' => bcrypt($request->password),
+            'password' => Hash::make($request->password),
         ]);
+        Auth::logoutOtherDevices($request->password);
 
         return back()->with('success', 'Пароль изменён');
     }
@@ -116,29 +153,32 @@ class ProfileController extends Controller
     {
         $user = Auth::user()->load('socialAccounts');
 
-        $providers = ['google', 'vkontakte', 'telegram', 'yandex'];
+        $providerMeta = config('social_auth.providers', []);
+        $providers = $this->socialAccounts->providers();
         $linkedProviders = $user->socialAccounts->pluck('provider')->toArray();
         $totalOrders = $user->orders()->count();
         $totalSpent = $user->orders()->where('status', 'completed')->sum('total');
 
-        return view('profile.social', compact('user', 'providers', 'linkedProviders', 'totalOrders', 'totalSpent'));
+        return view('profile.social', compact('user', 'providers', 'providerMeta', 'linkedProviders', 'totalOrders', 'totalSpent'));
     }
 
     public function unlinkSocial(string $provider)
     {
-        $user = Auth::user();
-
-        if (! $user->password) {
-            return back()->with('error', 'Невозможно отвязать последний способ входа. Сначала задайте пароль.');
+        if (! $this->socialAccounts->isSupportedProvider($provider)) {
+            return back()->with('error', 'Неподдерживаемый провайдер авторизации');
         }
 
-        $deleted = $user->socialAccounts()->where('provider', $provider)->delete();
+        $result = $this->socialAccounts->unlinkAccount(Auth::user(), $provider);
 
-        if ($deleted) {
-            return back()->with('success', 'Аккаунт '.ucfirst($provider).' отвязан');
+        if ($result === SocialAccountService::UNLINK_NOT_FOUND) {
+            return back()->with('error', 'Аккаунт не найден');
         }
 
-        return back()->with('error', 'Аккаунт не найден');
+        if ($result === SocialAccountService::UNLINK_LAST_METHOD) {
+            return back()->with('error', 'Невозможно отвязать последний способ входа.');
+        }
+
+        return back()->with('success', 'Аккаунт '.ucfirst($provider).' отвязан');
     }
 
     public function deleteAvatar()
