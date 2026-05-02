@@ -14,6 +14,7 @@ use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use Laravel\Fortify\Contracts\PasswordResetResponse as PasswordResetResponseContract;
 use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
 use Laravel\Fortify\Contracts\TwoFactorLoginResponse as TwoFactorLoginResponseContract;
+use RuntimeException;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -33,6 +34,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->guardDestructiveDatabaseCommands();
+
         View::composer('partials.header', function ($view) {
             static $categories = null;
 
@@ -82,5 +85,47 @@ class AppServiceProvider extends ServiceProvider
                 ->with('cartTotal', $summary['total'])
                 ->with('cartSavings', $summary['savings']);
         });
+    }
+
+    private function guardDestructiveDatabaseCommands(): void
+    {
+        if (! $this->app->runningInConsole()) {
+            return;
+        }
+
+        if ($this->canRunDestructiveCommandSafely()) {
+            return;
+        }
+
+        $argv = $_SERVER['argv'] ?? [];
+        $command = $argv[1] ?? null;
+        $destructiveCommands = [
+            'migrate:fresh',
+            'migrate:refresh',
+            'migrate:reset',
+            'db:wipe',
+        ];
+
+        if (is_string($command) && in_array($command, $destructiveCommands, true)) {
+            throw new RuntimeException(
+                "Blocked command '{$command}'. Set ALLOW_DESTRUCTIVE_DB_COMMANDS=true ".
+                "explicitly for intentional destructive DB operations."
+            );
+        }
+
+        if (
+            $command === 'test'
+            && (in_array('--drop-databases', $argv, true) || in_array('--recreate-databases', $argv, true))
+        ) {
+            throw new RuntimeException(
+                "Blocked 'test' with destructive DB options. ".
+                "Set ALLOW_DESTRUCTIVE_DB_COMMANDS=true for intentional use."
+            );
+        }
+    }
+
+    private function canRunDestructiveCommandSafely(): bool
+    {
+        return filter_var(env('ALLOW_DESTRUCTIVE_DB_COMMANDS', false), FILTER_VALIDATE_BOOL);
     }
 }
