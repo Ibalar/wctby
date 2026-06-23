@@ -9,7 +9,7 @@
     </div>
 
     @if($products->hasPages())
-        {{ $products->links() }}
+        {{ $products->links('vendor.pagination.bootstrap-5') }}
     @endif
 @endif
 
