@@ -9,9 +9,7 @@
     </div>
 
     @if($products->hasPages())
-        <nav class="d-flex justify-content-center" aria-label="Pagination">
-            {{ $products->links() }}
-        </nav>
+        {{ $products->links() }}
     @endif
 @endif
 
