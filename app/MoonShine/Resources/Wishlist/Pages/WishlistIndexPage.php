@@ -40,7 +40,7 @@ class WishlistIndexPage extends IndexPage
 
     protected function buttons(): ListOf
     {
-        return parent::buttons()->except(['create']);
+        return parent::buttons()->except('create');
     }
 
     /**

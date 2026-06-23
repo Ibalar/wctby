@@ -36,7 +36,7 @@ class WishlistDetailPage extends DetailPage
 
     protected function buttons(): ListOf
     {
-        return parent::buttons()->except(['edit']);
+        return parent::buttons()->except('edit');
     }
 
     protected function modifyDetailComponent(ComponentContract $component): ComponentContract
