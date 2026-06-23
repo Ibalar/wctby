@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CompareController;
 use App\Http\Controllers\BundleController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
@@ -63,6 +64,14 @@ Route::middleware(['auth', 'throttle:10,1'])->prefix('reviews')->name('reviews.'
 // Бандлы (комплекты)
 Route::get('/bundles', [BundleController::class, 'index'])->name('bundles.index');
 Route::get('/bundle/{slug}', [BundleController::class, 'show'])->name('bundles.show');
+
+// Сравнение товаров
+Route::post('/compare/toggle', [CompareController::class, 'toggle'])->name('compare.toggle');
+Route::get('/compare', [CompareController::class, 'index'])->name('compare.index');
+Route::get('/compare/remove/{id}', [CompareController::class, 'remove'])->name('compare.remove');
+
+// Товарные фиды
+Route::get('/feed/yandex.xml', [ProductFeedController::class, 'yandex'])->name('feed.yandex');
 
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
 Route::post('/checkout', [CheckoutController::class, 'process'])->middleware(['throttle:10,1', 'verified.if.auth'])->name('checkout.process');
