@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use App\Services\BreadcrumbService;
 
 class ProductController extends Controller
@@ -13,16 +14,20 @@ class ProductController extends Controller
      */
     public function show($slug, BreadcrumbService $breadcrumbsService)
     {
-        $product = Product::with([
+        $query = Product::with([
                 'category',
                 'media',
                 'skus.attributeOptions.attribute',
                 'attributeOptions.attribute',
-                'reviews' => fn ($q) => $q->approved()->latest(),
             ])
             ->where('slug', $slug)
-            ->where('is_active', true)
-            ->firstOrFail();
+            ->where('is_active', true);
+
+        if (Schema::hasTable('reviews')) {
+            $query->with(['reviews' => fn ($q) => $q->approved()->latest()]);
+        }
+
+        $product = $query->firstOrFail();
 
         $relatedProducts = Product::with([
                 'media',

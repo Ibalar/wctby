@@ -190,6 +190,7 @@
     </section>
 
     <!-- Reviews Section -->
+    @if(Schema::hasTable('reviews'))
     @php
         $reviews = $product->reviews()->approved()->with('user')->latest()->get();
     @endphp
@@ -261,6 +262,7 @@
             @endforeach
         @endif
     </section>
+    @endif
 
     @if($relatedProducts->isNotEmpty())
         <section class="container pb-5 mb-2 mb-md-3 mb-lg-4 mb-xl-5">
