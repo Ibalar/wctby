@@ -280,6 +280,36 @@
     @endif
 @endsection
 
+@section('meta_description', $product->meta_description ?: Str::limit(strip_tags($product->description ?? $product->name), 160))
+
+@push('open_graph')
+<meta property="og:image" content="{{ $product->getFirstMediaUrl('images') ?: asset('assets/app-icons/icon-180x180.png') }}">
+<meta property="og:type" content="product">
+@endpush
+
+@push('json_ld')
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "{{ $product->name }}",
+    "description": "{{ Str::limit(strip_tags($product->description ?? $product->name), 200) }}",
+    "sku": "{{ $product->sku }}",
+    "image": "{{ $product->getFirstMediaUrl('images') }}",
+    @if($product->category)
+    "category": "{{ $product->category->name }}",
+    @endif
+    "offers": {
+        "@type": "Offer",
+        "priceCurrency": "BYN",
+        "price": "{{ $product->base_price }}",
+        "availability": "{{ $product->is_active ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock' }}",
+        "url": "{{ url()->current() }}"
+    }
+}
+</script>
+@endpush
+
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', () => {

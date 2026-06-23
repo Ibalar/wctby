@@ -3,6 +3,9 @@
 use App\Http\Controllers\BundleController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
+use Illuminate\Support\Facades\Response;
+use App\Models\Category;
+use App\Models\Product;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProductController;
@@ -98,3 +101,22 @@ Route::middleware('auth')->prefix('profile')->name('profile.')->group(function (
         Route::post('/addresses/{address}/default', [AddressController::class, 'setDefault'])->name('addresses.default');
     });
 });
+
+Route::get('/sitemap.xml', function () {
+    $sitemap = '<?xml version="1.0" encoding="UTF-8"?>';
+    $sitemap .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+
+    $sitemap .= '<url><loc>' . route('home') . '</loc><priority>1.0</priority></url>';
+
+    foreach (Category::where('is_active', true)->get() as $cat) {
+        $sitemap .= '<url><loc>' . route('catalog.category', $cat->slug) . '</loc><priority>0.8</priority></url>';
+    }
+
+    foreach (Product::where('is_active', true)->get() as $product) {
+        $sitemap .= '<url><loc>' . route('catalog.product', $product->slug) . '</loc><priority>0.6</priority></url>';
+    }
+
+    $sitemap .= '</urlset>';
+
+    return response($sitemap, 200)->header('Content-Type', 'application/xml');
+})->name('sitemap');
