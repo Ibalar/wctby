@@ -51,11 +51,19 @@ class ProductParserService
         $result['source_url'] = $url;
         $result['site_code'] = $siteCode;
 
+        // Извлечение доп. изображений
+        $result['images'] = $this->extractImages($crawler, $url);
+
+        // Парсинг характеристик в properties
+        $result['properties'] = $this->extractSpecs($crawler, $siteCode, $url);
+
         Log::info('[ProductParser] Parsed successfully', [
             'url' => $url,
             'site' => $siteCode,
             'name' => $result['name'],
             'price' => $result['price'] ?? 'N/A',
+            'images' => count($result['images'] ?? []),
+            'specs' => count($result['properties'] ?? []),
         ]);
 
         return $result;
@@ -120,6 +128,8 @@ class ProductParserService
         $data = [];
 
         foreach ($selectors as $field => $selectorList) {
+            if ($field === 'specs') continue;
+
             $selectorsArr = is_array($selectorList) ? $selectorList : [$selectorList];
 
             foreach ($selectorsArr as $selector) {
@@ -148,13 +158,93 @@ class ProductParserService
             $data[$field] = $data[$field] ?? null;
         }
 
-        // Clean price
         if (isset($data['price'])) {
             $data['price'] = preg_replace('/[^\d.,]/', '', $data['price']);
             $data['price'] = str_replace(',', '.', $data['price']);
         }
 
         return $data;
+    }
+
+    protected function extractImages(Crawler $crawler, string $sourceUrl): array
+    {
+        $images = [];
+        $imgSelectors = [
+            '.catalog-masthead__image img::attr(src)',
+            '[class*="gallery"] img::attr(src)',
+            '.product-gallery img::attr(src)',
+            '[itemprop="image"]::attr(src)',
+            'img[class*="main"]::attr(src)',
+            'img::attr(src)',
+        ];
+
+        foreach ($imgSelectors as $sel) {
+            try {
+                $sel = str_replace('::attr(src)', '', $sel);
+                $nodes = $crawler->filter($sel);
+                if ($nodes->count() > 0) {
+                    $nodes->each(function ($node) use (&$images, $sourceUrl) {
+                        $src = $node->attr('src') ?? $node->attr('data-src');
+                        if ($src) {
+                            $resolved = $this->resolveImageUrl($src, $sourceUrl);
+                            if ($resolved && !in_array($resolved, $images)) {
+                                $images[] = $resolved;
+                            }
+                        }
+                    });
+                    if (!empty($images)) break;
+                }
+            } catch (\Exception) {
+                continue;
+            }
+        }
+
+        return array_slice($images, 0, 5);
+    }
+
+    protected function extractSpecs(Crawler $crawler, string $siteCode, string $sourceUrl): array
+    {
+        $specs = [];
+        $siteConfig = $this->config['sites'][$siteCode] ?? null;
+        $specsSelector = $siteConfig['selectors']['specs'] ?? '.product-specs tr, [class*="spec"] tr, table[class*="char"] tr';
+
+        try {
+            $rows = $crawler->filter($specsSelector);
+            $rows->each(function ($row) use (&$specs) {
+                try {
+                    $cells = $row->filter('td, th');
+                    if ($cells->count() >= 2) {
+                        $key = trim($cells->eq(0)->text());
+                        $value = trim($cells->eq(1)->text());
+                        if (!empty($key) && !empty($value) && mb_strlen($key) < 100) {
+                            $specs[$key] = $value;
+                        }
+                    }
+                } catch (\Exception) {}
+            });
+        } catch (\Exception) {}
+
+        if (empty($specs)) {
+            try {
+                $specsSelector = $siteConfig['selectors']['specs_alt']
+                    ?? 'table tr:not(:first-child), .product-specs tr, [class*="spec"] tr';
+                $rows = $crawler->filter($specsSelector);
+                $rows->each(function ($row) use (&$specs) {
+                    try {
+                        $cells = $row->filter('td, th');
+                        if ($cells->count() >= 2) {
+                            $key = trim($cells->eq(0)->text());
+                            $value = trim($cells->eq(1)->text());
+                            if (!empty($key) && !empty($value) && mb_strlen($key) < 100) {
+                                $specs[$key] = $value;
+                            }
+                        }
+                    } catch (\Exception) {}
+                });
+            } catch (\Exception) {}
+        }
+
+        return $specs;
     }
 
     protected function createProductFromData(array $data): Product
@@ -175,19 +265,16 @@ class ProductParserService
             'slug' => $slug,
             'sku' => 'parsed-' . Str::random(8),
             'base_price' => $price > 0 ? $price : 0,
-            'description' => $data['description'] ?? null,
+            'short_description' => $data['description'] ?? null,
+            'properties' => !empty($data['properties']) ? $data['properties'] : null,
             'is_active' => false,
         ]);
 
-        if (!empty($data['image'])) {
-            $imageUrl = $this->resolveImageUrl($data['image'], $data['source_url'] ?? '');
-
-            if ($imageUrl) {
+        // Скачиваем все изображения
+        if (!empty($data['images'])) {
+            foreach ($data['images'] as $i => $imageUrl) {
                 try {
-                    $product
-                        ->addMediaFromUrl($imageUrl)
-                        ->toMediaCollection('images');
-
+                    $product->addMediaFromUrl($imageUrl)->toMediaCollection('images');
                     Log::info('[ProductParser] Image downloaded', ['url' => $imageUrl]);
                 } catch (\Exception $e) {
                     Log::warning('[ProductParser] Image download failed', [
@@ -203,25 +290,14 @@ class ProductParserService
 
     protected function resolveImageUrl(string $src, string $sourceUrl): ?string
     {
-        if (empty($src)) {
-            return null;
-        }
+        if (empty($src)) return null;
 
-        // Already absolute
-        if (preg_match('#^https?://#', $src)) {
-            return $src;
-        }
+        if (preg_match('#^https?://#', $src)) return $src;
 
-        // Protocol-relative
-        if (str_starts_with($src, '//')) {
-            return 'https:' . $src;
-        }
+        if (str_starts_with($src, '//')) return 'https:' . $src;
 
-        // Relative — resolve against source URL
         $base = parse_url($sourceUrl);
-        if (!$base || empty($base['scheme']) || empty($base['host'])) {
-            return null;
-        }
+        if (!$base || empty($base['scheme']) || empty($base['host'])) return null;
 
         $path = str_starts_with($src, '/') ? $src : '/' . $src;
 
