@@ -38,6 +38,14 @@ php artisan serve
 
 ---
 
+## Запуск через Docker
+
+```bash
+cp .env.example .env
+docker compose up -d
+# Открыть http://localhost:8080
+```
+
 ## Документация
 
 | Руководство | Описание |
@@ -45,6 +53,7 @@ php artisan serve
 | [Начало работы](docs/getting-started.md) | Установка, настройка, первый запуск |
 | [Архитектура](docs/architecture.md) | Структура проекта, модули, слои |
 | [Конфигурация](docs/configuration.md) | Переменные окружения, конфигурационные файлы |
+| [Деплой](docs/deployment.md) | Запуск через Docker, CI/CD |
 
 ## Технический стек
 
