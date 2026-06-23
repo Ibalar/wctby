@@ -12,7 +12,7 @@
             'cancelled' => ['label' => 'Отменён', 'class' => 'text-bg-danger'],
         ];
 
-        $status = $statusBadges[$order->status] ?? ['label' => $order->status, 'class' => 'text-bg-secondary'];
+        $status = $statusBadges[$order->status->value] ?? ['label' => $order->status->value, 'class' => 'text-bg-secondary'];
         $shippingAddress = is_array($order->shipping_address) ? $order->shipping_address : [];
         $shippingAmount = (float) ($order->shipping_amount ?? $order->delivery_price ?? 0);
     @endphp

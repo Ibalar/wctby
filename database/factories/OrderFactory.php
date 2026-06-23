@@ -24,7 +24,7 @@ class OrderFactory extends Factory
         return [
             'user_id' => User::factory(),
             'number' => 'ORD-' . now()->format('Ymd') . '-' . str_pad((string) fake()->unique()->numberBetween(1, 999999), 6, '0', STR_PAD_LEFT),
-            'status' => OrderStatus::New,
+            'status' => OrderStatus::New->value,
             'currency' => 'BYN',
             'subtotal' => $subtotal,
             'discount_amount' => $discountAmount,
@@ -52,21 +52,21 @@ class OrderFactory extends Factory
     public function completed(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => OrderStatus::Completed,
+            'status' => OrderStatus::Completed->value,
         ]);
     }
 
     public function cancelled(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => OrderStatus::Cancelled,
+            'status' => OrderStatus::Cancelled->value,
         ]);
     }
 
     public function processing(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => OrderStatus::Processing,
+            'status' => OrderStatus::Processing->value,
         ]);
     }
 

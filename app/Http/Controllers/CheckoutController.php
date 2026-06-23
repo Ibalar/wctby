@@ -95,7 +95,7 @@ class CheckoutController extends Controller
                     $order = Order::create([
                         'user_id' => $request->user()?->id,
                         'number' => $this->generateOrderNumber(),
-                        'status' => OrderStatus::New,
+                        'status' => OrderStatus::New->value,
                         'currency' => 'BYN',
                         'subtotal' => $subtotal,
                         'discount_amount' => 0,

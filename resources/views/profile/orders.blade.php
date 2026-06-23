@@ -172,7 +172,7 @@
                                 </thead>
                                 <tbody>
                                     @foreach ($orders as $order)
-                                        @php($status = $statusBadges[$order->status] ?? ['label' => $order->status, 'class' => 'text-bg-secondary'])
+                                        @php($status = $statusBadges[$order->status->value] ?? ['label' => $order->status->value, 'class' => 'text-bg-secondary'])
                                         <tr>
                                             <td class="py-3">
                                                 <div class="fw-semibold text-dark-emphasis">#{{ $order->number }}</div>

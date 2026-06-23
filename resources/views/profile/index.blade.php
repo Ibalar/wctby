@@ -353,7 +353,7 @@
                         @else
                             <div class="vstack gap-3">
                                 @foreach ($lastOrders as $order)
-                                    @php($status = $statusLabels[$order->status] ?? ['label' => $order->status, 'class' => 'text-bg-secondary'])
+                                    @php($status = $statusLabels[$order->status->value] ?? ['label' => $order->status->value, 'class' => 'text-bg-secondary'])
                                     <div class="border rounded-5 p-4">
                                         <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
                                             <div>
