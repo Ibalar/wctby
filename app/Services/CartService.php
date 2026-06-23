@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Bundle;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Product;
@@ -83,13 +84,14 @@ class CartService
      */
     public function addItem(Cart $cart, string $purchasableType, int $purchasableId, int $quantity = 1): CartItem
     {
-        // Определяем модель и цену
         if ($purchasableType === 'sku') {
             $purchasable = Sku::where('is_active', true)->findOrFail($purchasableId);
             $price = $purchasable->price;
+        } elseif ($purchasableType === 'bundle') {
+            $purchasable = Bundle::where('is_active', true)->findOrFail($purchasableId);
+            $price = (float) ($purchasable->total_price ?? 0);
         } else {
             $purchasable = Product::where('is_active', true)->findOrFail($purchasableId);
-            // Если у товара есть SKU — ошибка, нужно выбирать SKU
             if ($purchasable->skus()->where('is_active', true)->exists()) {
                 throw new \Exception('Этот товар имеет варианты, выберите конкретный вариант');
             }
@@ -187,6 +189,7 @@ class CartService
         $items->loadMorph('purchasable', [
             Sku::class => ['product.media', 'attributeOptions.attribute'],
             Product::class => ['media'],
+            Bundle::class => ['media', 'items.product.media'],
         ]);
 
         return $items;

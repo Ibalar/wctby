@@ -33,7 +33,7 @@ class CartController extends Controller
     public function add(Request $request)
     {
         $request->validate([
-            'purchasable_type' => 'required|in:sku,product',
+            'purchasable_type' => 'required|in:sku,product,bundle',
             'purchasable_id' => 'required|integer',
             'quantity' => 'sometimes|integer|min:1',
         ]);

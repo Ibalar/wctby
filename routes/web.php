@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BundleController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\PageController;
@@ -55,6 +56,10 @@ Route::middleware('throttle:60,1')->prefix('wishlist')->name('wishlist.')->group
 Route::middleware(['auth', 'throttle:10,1'])->prefix('reviews')->name('reviews.')->group(function () {
     Route::post('/', [ReviewController::class, 'store'])->name('store');
 });
+
+// Бандлы (комплекты)
+Route::get('/bundles', [BundleController::class, 'index'])->name('bundles.index');
+Route::get('/bundle/{slug}', [BundleController::class, 'show'])->name('bundles.show');
 
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
 Route::post('/checkout', [CheckoutController::class, 'process'])->middleware(['throttle:10,1', 'verified.if.auth'])->name('checkout.process');
