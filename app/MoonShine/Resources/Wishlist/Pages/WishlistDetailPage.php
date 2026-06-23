@@ -26,10 +26,8 @@ class WishlistDetailPage extends DetailPage
     {
         return [
             ID::make(),
-            Text::make('Пользователь', 'user_id')
-                ->formatted(fn ($value) => $value ? "User #{$value}" : 'Гость'),
-            Text::make('Товар', 'product_id')
-                ->formatted(fn ($value) => "Product #{$value}"),
+            Text::make('Пользователь', 'user_id', fn ($item) => $item->user_id ? "User #{$item->user_id}" : 'Гость'),
+            Text::make('Товар', 'product_id', fn ($item) => "Product #{$item->product_id}"),
             Text::make('Сессия', 'session_token'),
             Date::make('Добавлено', 'created_at'),
             Date::make('Обновлено', 'updated_at'),

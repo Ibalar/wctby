@@ -31,12 +31,9 @@ class WishlistIndexPage extends IndexPage
     {
         return [
             ID::make(),
-            Text::make('Пользователь', 'user_id')
-                ->formatted(fn ($value) => $value ? "User #{$value}" : 'Гость'),
-            Text::make('Товар', 'product_id')
-                ->formatted(fn ($value) => "Product #{$value}"),
-            Text::make('Сессия', 'session_token')
-                ->formatted(fn ($value) => $value ? mb_substr($value, 0, 10) . '...' : '-'),
+            Text::make('Пользователь', 'user_id', fn ($item) => $item->user_id ? "User #{$item->user_id}" : 'Гость'),
+            Text::make('Товар', 'product_id', fn ($item) => "Product #{$item->product_id}"),
+            Text::make('Сессия', 'session_token', fn ($item) => $item->session_token ? mb_substr($item->session_token, 0, 10) . '...' : '-'),
             Date::make('Добавлено', 'created_at'),
         ];
     }
