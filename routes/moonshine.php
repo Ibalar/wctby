@@ -22,3 +22,11 @@ Route::get('/resource/parsed-item-resource/parse-all', function () {
 
     return redirect()->back()->with('success', "{$count} задач отправлено в очередь");
 })->name('moonshine.parser.run');
+
+Route::get('/resource/parsed-item-resource/reparse/{id}', function (int $id) {
+    $item = ParsedItem::findOrFail($id);
+    $item->update(['status' => 'pending', 'error_message' => null]);
+    ParseProductJob::dispatch($item->id);
+
+    return redirect()->back()->with('success', 'Парсинг перезапущен');
+})->name('moonshine.parser.reparse');

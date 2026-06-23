@@ -12,6 +12,7 @@ use MoonShine\Contracts\UI\ComponentContract;
 use MoonShine\Contracts\UI\FieldContract;
 use MoonShine\Laravel\Pages\Crud\IndexPage;
 use MoonShine\Laravel\QueryTags\QueryTag;
+use MoonShine\Support\ListOf;
 use MoonShine\UI\Components\ActionButton;
 use MoonShine\UI\Components\Metrics\Wrapped\ValueMetric;
 use MoonShine\UI\Fields\Date;
@@ -71,5 +72,14 @@ class ParsedItemIndexPage extends IndexPage
                 ->primary(),
             ...parent::topLayer(),
         ];
+    }
+
+    protected function lineButtons(): ListOf
+    {
+        return ListOf::make([
+            ActionButton::make('Перезапустить', fn ($item) => route('moonshine.parser.reparse', ['id' => $item->getKey()]))
+                ->warning()
+                ->icon('arrow-path'),
+        ]);
     }
 }
