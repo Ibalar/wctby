@@ -83,21 +83,35 @@ class CheckoutController extends Controller
 
         $subtotal = $this->cartService->getTotal($cart);
         $shippingAmount = (float) $deliveryMethod->price;
-        $total = $subtotal + $shippingAmount;
+
+        // Применяем купон, если есть в сессии
+        $couponData = session('coupon');
+        $discountAmount = 0;
+        if ($couponData) {
+            $coupon = \App\Models\Coupon::find($couponData['id']);
+            if ($coupon && $coupon->isValid()) {
+                $discountAmount = $coupon->calculateDiscount($subtotal);
+                session()->put('coupon.discount', $discountAmount);
+            } else {
+                session()->forget('coupon');
+            }
+        }
+
+        $total = $subtotal + $shippingAmount - $discountAmount;
 
         $maxAttempts = 5;
         $attempt = 0;
 
         while ($attempt < $maxAttempts) {
             try {
-                $order = DB::transaction(function () use ($request, $items, $validated, $deliveryMethod, $paymentMethod, $subtotal, $shippingAmount, $total) {
+                $order = DB::transaction(function () use ($request, $items, $validated, $deliveryMethod, $paymentMethod, $subtotal, $shippingAmount, $total, $discountAmount) {
                     $order = Order::create([
                         'user_id' => $request->user()?->id,
                         'number' => $this->generateOrderNumber(),
                         'status' => OrderStatus::New->value,
                         'currency' => 'BYN',
                         'subtotal' => $subtotal,
-                        'discount_amount' => 0,
+                        'discount_amount' => $discountAmount,
                         'shipping_amount' => $shippingAmount,
                         'total' => $total,
                         'payment_method' => $paymentMethod->code,

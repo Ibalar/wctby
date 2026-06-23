@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CompareController;
+use App\Http\Controllers\CouponController;
 use App\Http\Controllers\BundleController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
@@ -69,6 +70,10 @@ Route::get('/bundle/{slug}', [BundleController::class, 'show'])->name('bundles.s
 Route::post('/compare/toggle', [CompareController::class, 'toggle'])->name('compare.toggle');
 Route::get('/compare', [CompareController::class, 'index'])->name('compare.index');
 Route::get('/compare/remove/{id}', [CompareController::class, 'remove'])->name('compare.remove');
+
+// Промокоды
+Route::post('/coupon/apply', [CouponController::class, 'apply'])->name('coupon.apply');
+Route::post('/coupon/remove', [CouponController::class, 'remove'])->name('coupon.remove');
 
 // Товарные фиды
 Route::get('/feed/yandex.xml', [ProductFeedController::class, 'yandex'])->name('feed.yandex');

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\MoonShine\Resources\SocialAccount\SocialAccountResource;
+use App\MoonShine\Resources\Coupon\CouponResource;
 use App\MoonShine\Resources\ParserSite\ParserSiteResource;
 use App\MoonShine\Resources\ParsedItem\ParsedItemResource;
 use App\MoonShine\Resources\Review\ReviewResource;
@@ -63,6 +64,7 @@ class MoonShineServiceProvider extends ServiceProvider
                 ReviewResource::class,
                 ParsedItemResource::class,
                 ParserSiteResource::class,
+                CouponResource::class,
                 PageResource::class,
             ])
             ->pages([
