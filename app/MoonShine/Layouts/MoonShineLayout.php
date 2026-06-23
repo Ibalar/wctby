@@ -27,6 +27,7 @@ use App\MoonShine\Resources\BundleItem\BundleItemResource;
 use App\MoonShine\Resources\Order\OrderResource;
 use App\MoonShine\Resources\OrderItem\OrderItemResource;
 use App\MoonShine\Resources\ProductAttributeOption\ProductAttributeOptionResource;
+use App\MoonShine\Resources\ParserSite\ParserSiteResource;
 use App\MoonShine\Resources\ParsedItem\ParsedItemResource;
 use App\MoonShine\Resources\Review\ReviewResource;
 use App\MoonShine\Resources\Wishlist\WishlistResource;
@@ -70,6 +71,7 @@ final class MoonShineLayout extends AppLayout
             MenuItem::make(WishlistResource::class, 'Избранное'),
             MenuItem::make(ReviewResource::class, 'Отзывы'),
             MenuItem::make(ParsedItemResource::class, 'Парсинг'),
+            MenuItem::make(ParserSiteResource::class, 'Схемы парсинга'),
             MenuItem::make(ProductAttributeOptionResource::class, 'ProductAttributeOptions'),
         ];
     }

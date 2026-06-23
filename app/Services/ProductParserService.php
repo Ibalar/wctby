@@ -141,6 +141,17 @@ class ProductParserService
     {
         $host = parse_url($url, PHP_URL_HOST);
 
+        // Сначала ищем в БД (пользовательские схемы)
+        $dbSites = \App\Models\ParserSite::active()->get();
+        foreach ($dbSites as $site) {
+            foreach ($site->domains as $domain) {
+                if ($domain === '*' || str_contains($host, $domain)) {
+                    return $site->code;
+                }
+            }
+        }
+
+        // Fallback: config/parsers.php
         foreach ($this->config['sites'] as $code => $site) {
             foreach ($site['domains'] as $domain) {
                 if ($domain === '*' || str_contains($host, $domain)) {
@@ -154,6 +165,13 @@ class ProductParserService
 
     protected function getSelectors(string $siteCode): array
     {
+        // Сначала ищем в БД
+        $dbSite = \App\Models\ParserSite::active()->where('code', $siteCode)->first();
+        if ($dbSite && !empty($dbSite->selectors)) {
+            return $dbSite->selectors;
+        }
+
+        // Fallback: config/parsers.php
         $siteConfig = $this->config['sites'][$siteCode] ?? null;
 
         return $siteConfig['selectors'] ?? $this->config['default_selectors'];
