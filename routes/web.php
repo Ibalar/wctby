@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SocialAuthController;
@@ -28,6 +29,8 @@ Route::prefix('catalog')->group(function () {
 });
 
 Route::get('/product/{slug}', [ProductController::class, 'show'])->name('catalog.product');
+
+Route::get('/page/{slug}', [PageController::class, 'show'])->name('page.show');
 
 // Корзина
 Route::middleware('throttle:60,1')->group(function () {

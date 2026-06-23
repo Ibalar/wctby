@@ -23,6 +23,7 @@ use App\MoonShine\Resources\Order\OrderResource;
 use App\MoonShine\Resources\OrderItem\OrderItemResource;
 use App\MoonShine\Resources\Slide\SlideResource;
 use App\MoonShine\Resources\ProductAttributeOption\ProductAttributeOptionResource;
+use App\MoonShine\Resources\Page\PageResource;
 use App\MoonShine\Resources\PaymentMethod\PaymentMethodResource;
 use App\MoonShine\Resources\DeliveryMethod\DeliveryMethodResource;
 use App\MoonShine\Resources\User\UserResource;
@@ -56,6 +57,7 @@ class MoonShineServiceProvider extends ServiceProvider
                 PaymentMethodResource::class,
                 DeliveryMethodResource::class,
                 WishlistResource::class,
+                PageResource::class,
             ])
             ->pages([
                 ...$core->getConfig()->getPages(),

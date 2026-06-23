@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Category;
+use App\Models\Page;
 use App\Models\Product;
 
 class BreadcrumbService
@@ -65,6 +66,17 @@ class BreadcrumbService
         ];
 
         return $breadcrumbs;
+    }
+
+    /**
+     * Для CMS-страницы
+     */
+    public function forPage(Page $page): array
+    {
+        return [
+            ['label' => 'Главная', 'url' => route('home') ?? '/'],
+            ['label' => $page->title, 'url' => null],
+        ];
     }
 
     /**
