@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\AdminImportExportController;
 use App\Http\Controllers\BundleController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\PageController;
@@ -16,6 +18,13 @@ use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// Админ: импорт/экспорт товаров
+Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/products/export', [AdminImportExportController::class, 'export'])->name('products.export');
+    Route::get('/products/import', [AdminImportExportController::class, 'showForm'])->name('products.import.form');
+    Route::post('/products/import', [AdminImportExportController::class, 'import'])->name('products.import');
+});
 
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 
