@@ -188,14 +188,25 @@ class ProductParserService
     {
         $images = [];
 
-        // Пробуем разные селекторы, пока не найдём изображения
+        // Сначала проверяем <a> с href (Onliner)
+        try {
+            $crawler->filter('a[href*=".jpg"], a[href*=".jpeg"], a[href*=".png"], a[href*=".webp"], [class*="gallery"] a, [class*="zoom"] a')->each(
+                function ($node) use (&$images, $sourceUrl) {
+                    $href = $node->attr('href');
+                    if ($href && preg_match('/\.(jpg|jpeg|png|webp)/i', $href)) {
+                        $resolved = $this->resolveImageUrl($href, $sourceUrl);
+                        if ($resolved && !in_array($resolved, $images)) {
+                            $images[] = $resolved;
+                        }
+                    }
+                }
+            );
+        } catch (\Exception) {}
+
+        // <img> теги
         $selectorGroups = [
-            // Onliner: галерея в masthead
-            ['.catalog-masthead__image img', '.catalog-masthead__thumbnails img'],
-            // Любая галерея
-            ['[class*="gallery"] img', '[class*="preview"] img'],
-            // Основное изображение товара
-            ['[itemprop="image"]', 'img[class*="main"]'],
+            ['.catalog-masthead__image img', '[class*="gallery"] img'],
+            ['img[class*="main"]', 'img[class*="product"]'],
         ];
 
         foreach ($selectorGroups as $group) {
@@ -204,7 +215,7 @@ class ProductParserService
                     $nodes = $crawler->filter($sel);
                     if ($nodes->count() > 0) {
                         $nodes->each(function ($node) use (&$images, $sourceUrl) {
-                            $src = $node->attr('src') ?? $node->attr('data-src') ?? $node->attr('data-original') ?? $node->attr('content');
+                            $src = $node->attr('src') ?? $node->attr('data-src') ?? $node->attr('data-original');
                             if ($src) {
                                 $resolved = $this->resolveImageUrl($src, $sourceUrl);
                                 if ($resolved && !in_array($resolved, $images)) {
@@ -217,23 +228,24 @@ class ProductParserService
                     continue;
                 }
             }
-            if (!empty($images)) break;
         }
 
-        // Fallback: любые img на странице
+        // Fallback: все img
         if (empty($images)) {
             try {
                 $crawler->filter('img')->each(function ($node) use (&$images, $sourceUrl) {
                     $src = $node->attr('src') ?? $node->attr('data-src');
                     if ($src) {
                         $resolved = $this->resolveImageUrl($src, $sourceUrl);
-                        if ($resolved && !in_array($resolved, $images)) {
+                        if ($resolved && !in_array($resolved, $images) && preg_match('/\.(jpg|jpeg|png|webp)/i', $resolved)) {
                             $images[] = $resolved;
                         }
                     }
                 });
             } catch (\Exception) {}
         }
+
+        Log::info('[ProductParser] Images found', ['count' => count($images), 'urls' => $images]);
 
         return array_slice($images, 0, 5);
     }
