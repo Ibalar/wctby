@@ -10,6 +10,7 @@
     <meta name="description" content="@yield('meta_description', 'Интернет-магазин электроники и товаров')">
     <meta name="keywords" content="@yield('meta_keywords', 'онлайн магазин, электроника, товары')">
     <meta name="author" content="WebArt.by">
+    @stack('meta')
 
     <!-- Open Graph -->
     <meta property="og:title" content="@yield('title', config('app.name'))">

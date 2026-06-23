@@ -280,7 +280,9 @@
     @endif
 @endsection
 
-@section('meta_description', $product->meta_description ?: Str::limit(strip_tags($product->description ?? $product->name), 160))
+@push('meta')
+<meta name="description" content="{{ $product->meta_description ?: Str::limit(strip_tags($product->description ?? $product->name), 160) }}">
+@endpush
 
 @push('open_graph')
 <meta property="og:image" content="{{ $product->getFirstMediaUrl('images') ?: asset('assets/app-icons/icon-180x180.png') }}">
