@@ -22,6 +22,7 @@ return new class extends Migration
             $table->longText('description')->nullable();
             $table->decimal('base_price', 12, 2)->default(0);
             $table->json('flags')->nullable();
+            $table->json('properties')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

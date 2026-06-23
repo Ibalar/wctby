@@ -35,12 +35,43 @@ class CartService
             $request->session()->put('cart_token', $sessionToken);
         }
 
-        $cart = Cart::firstOrCreate(
-            ['session_token' => $sessionToken],
-            ['expires_at' => now()->addDays(7)]
-        );
+        $cart = Cart::where('session_token', $sessionToken)->first();
+
+        // Проверяем, не истекла ли корзина
+        if ($cart && $this->isExpired($cart)) {
+            $this->clearExpiredCart($cart);
+            $cart = null;
+        }
+
+        if (!$cart) {
+            $cart = Cart::create([
+                'session_token' => $sessionToken,
+                'expires_at' => now()->addDays(7),
+            ]);
+        }
 
         return $cart;
+    }
+
+    /**
+     * Проверить, истекла ли корзина
+     */
+    public function isExpired(Cart $cart): bool
+    {
+        if (!$cart->expires_at) {
+            return false;
+        }
+
+        return $cart->expires_at->isPast();
+    }
+
+    /**
+     * Очистить истёкшую корзину
+     */
+    protected function clearExpiredCart(Cart $cart): void
+    {
+        $cart->items()->delete();
+        $cart->delete();
     }
 
     /**
@@ -54,10 +85,10 @@ class CartService
     {
         // Определяем модель и цену
         if ($purchasableType === 'sku') {
-            $purchasable = Sku::findOrFail($purchasableId);
+            $purchasable = Sku::where('is_active', true)->findOrFail($purchasableId);
             $price = $purchasable->price;
         } else {
-            $purchasable = Product::findOrFail($purchasableId);
+            $purchasable = Product::where('is_active', true)->findOrFail($purchasableId);
             // Если у товара есть SKU — ошибка, нужно выбирать SKU
             if ($purchasable->skus()->where('is_active', true)->exists()) {
                 throw new \Exception('Этот товар имеет варианты, выберите конкретный вариант');
@@ -71,8 +102,12 @@ class CartService
             ->where('purchasable_id', $purchasableId)
             ->first();
 
+        $totalQuantity = ($existingItem?->quantity ?? 0) + $quantity;
+
+        $this->validateStock($purchasable, $totalQuantity);
+
         if ($existingItem) {
-            $existingItem->increment('quantity', $quantity);
+            $existingItem->update(['quantity' => $totalQuantity]);
             return $existingItem;
         }
 
@@ -91,11 +126,39 @@ class CartService
     {
         if ($quantity <= 0) {
             $item->delete();
-        } else {
-            $item->update(['quantity' => $quantity]);
+            return $item;
         }
 
+        $purchasable = $item->purchasable;
+        if ($purchasable) {
+            $this->validateStock($purchasable, $quantity);
+        }
+
+        $item->update(['quantity' => $quantity]);
+
         return $item;
+    }
+
+    protected function validateStock(Sku|Product $purchasable, int $quantity): void
+    {
+        if (!$purchasable instanceof Sku) {
+            return;
+        }
+
+        if ($purchasable->stock === null) {
+            return;
+        }
+
+        if ($quantity > $purchasable->stock) {
+            $available = $purchasable->stock;
+            $name = $purchasable->product?->name ?? ('SKU #' . $purchasable->id);
+
+            if ($available <= 0) {
+                throw new \Exception("Товар «{$name}» закончился на складе");
+            }
+
+            throw new \Exception("Недостаточно товара «{$name}» на складе. Доступно: {$available}");
+        }
     }
 
     /**
@@ -130,7 +193,7 @@ class CartService
     }
 
     /**
-     * РџРѕР»СѓС‡РёС‚СЊ СЌРєРѕРЅРѕРјРёСЋ РїРѕ РєРѕСЂР·РёРЅРµ РѕС‚ Р·Р°С‡С‘СЂРєРЅСѓС‚С‹С… С†РµРЅ
+     * Получить экономию по корзине от зачёркнутых цен
      */
     public function getSavings(Cart $cart): float
     {
@@ -180,6 +243,12 @@ class CartService
         $guestCart = Cart::where('session_token', $sessionToken)->first();
 
         if (!$guestCart) {
+            return;
+        }
+
+        // Не сливаем истёкшую корзину
+        if ($this->isExpired($guestCart)) {
+            $this->clearExpiredCart($guestCart);
             return;
         }
 

@@ -3,19 +3,18 @@
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SocialAuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
-use UniSharp\LaravelFilemanager\Lfm;
-
-Route::prefix('laravel-filemanager')->group(function () {
-    Lfm::routes();
-});
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+
+Route::get('/search', [SearchController::class, 'index'])->name('search');
 
 Route::prefix('catalog')->group(function () {
 
@@ -31,15 +30,25 @@ Route::prefix('catalog')->group(function () {
 Route::get('/product/{slug}', [ProductController::class, 'show'])->name('catalog.product');
 
 // Корзина
-Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
-Route::post('/cart/update/{item}', [CartController::class, 'update'])->name('cart.update');
-Route::post('/cart/remove/{item}', [CartController::class, 'remove'])->name('cart.remove');
-Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
-Route::get('/cart/data', [CartController::class, 'data'])->name('cart.data');
+Route::middleware('throttle:60,1')->group(function () {
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+    Route::post('/cart/update/{item}', [CartController::class, 'update'])->name('cart.update');
+    Route::post('/cart/remove/{item}', [CartController::class, 'remove'])->name('cart.remove');
+    Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
+    Route::get('/cart/data', [CartController::class, 'data'])->name('cart.data');
+});
+
+// Избранное
+Route::middleware('throttle:60,1')->prefix('wishlist')->name('wishlist.')->group(function () {
+    Route::get('/', [WishlistController::class, 'index'])->name('index');
+    Route::post('/toggle', [WishlistController::class, 'toggle'])->name('toggle');
+    Route::delete('/{wishlist}', [WishlistController::class, 'remove'])->name('remove');
+    Route::get('/count', [WishlistController::class, 'count'])->name('count');
+});
 
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
-Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process');
+Route::post('/checkout', [CheckoutController::class, 'process'])->middleware(['throttle:10,1', 'verified.if.auth'])->name('checkout.process');
 Route::get('/checkout/success/{orderNumber}', [CheckoutController::class, 'success'])->name('checkout.success');
 
 Route::middleware('throttle:20,1')->group(function () {

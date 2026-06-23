@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Product;
 use App\Services\BreadcrumbService;
+use App\Services\CategoryService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -12,21 +13,16 @@ use Illuminate\Support\Facades\DB;
 
 class CategoryController extends Controller
 {
+    public function __construct(
+        protected CategoryService $categoryService
+    ) {}
+
     public function index()
     {
-        $categories = Category::with([
-                'children' => fn ($query) => $query
-                    ->where('is_active', true)
-                    ->orderBy('sort_order'),
-                'media',
-            ])
-            ->where('is_active', true)
-            ->whereNull('parent_id')
-            ->orderBy('sort_order')
-            ->get();
+        $categories = $this->categoryService->getTree();
 
         $catalogCategoryIds = $categories
-            ->flatMap(fn (Category $category) => $category->getDescendantIds())
+            ->flatMap(fn (Category $category) => $this->categoryService->getDescendantIds($category->id))
             ->unique()
             ->values();
 
@@ -62,7 +58,7 @@ class CategoryController extends Controller
             ->where('is_active', true)
             ->firstOrFail();
 
-        $categoryIds = $this->getDescendantCategoryIds((int) $category->id);
+        $categoryIds = $this->categoryService->getDescendantIds((int) $category->id);
 
         $sort = request('sort');
         $statuses = array_filter(Arr::wrap(request('status')));
@@ -151,7 +147,7 @@ class CategoryController extends Controller
             ->where('is_active', true)
             ->firstOrFail();
 
-        $categoryIds = $this->getDescendantCategoryIds((int) $category->id);
+        $categoryIds = $this->categoryService->getDescendantIds((int) $category->id);
         $sort = request('sort');
         $statuses = array_filter(Arr::wrap(request('status')));
         $priceMin = request('price_min');
@@ -176,6 +172,17 @@ class CategoryController extends Controller
         mixed $priceMax,
         ?string $sort
     ): void {
+        $productsQuery->leftJoinSub(
+            DB::table('skus')
+                ->selectRaw('product_id, MIN(price) as min_price')
+                ->where('is_active', true)
+                ->groupBy('product_id'),
+            'sku_prices',
+            'sku_prices.product_id',
+            '=',
+            'products.id'
+        );
+
         if (!empty($statuses)) {
             $productsQuery->where(function (Builder $query) use ($statuses): void {
                 foreach ($statuses as $status) {
@@ -190,14 +197,14 @@ class CategoryController extends Controller
         if ($priceMin !== null || $priceMax !== null) {
             if ($priceMin !== null) {
                 $productsQuery->whereRaw(
-                    'COALESCE((SELECT MIN(price) FROM skus WHERE skus.product_id = products.id AND skus.is_active = 1), products.base_price) >= ?',
+                    'COALESCE(sku_prices.min_price, products.base_price) >= ?',
                     [$priceMin]
                 );
             }
 
             if ($priceMax !== null) {
                 $productsQuery->whereRaw(
-                    'COALESCE((SELECT MIN(price) FROM skus WHERE skus.product_id = products.id AND skus.is_active = 1), products.base_price) <= ?',
+                    'COALESCE(sku_prices.min_price, products.base_price) <= ?',
                     [$priceMax]
                 );
             }
@@ -205,10 +212,10 @@ class CategoryController extends Controller
 
         switch ($sort) {
             case 'price_asc':
-                $productsQuery->orderByRaw('COALESCE((SELECT MIN(price) FROM skus WHERE skus.product_id = products.id AND skus.is_active = 1), products.base_price) ASC');
+                $productsQuery->orderByRaw('COALESCE(sku_prices.min_price, products.base_price) ASC');
                 break;
             case 'price_desc':
-                $productsQuery->orderByRaw('COALESCE((SELECT MIN(price) FROM skus WHERE skus.product_id = products.id AND skus.is_active = 1), products.base_price) DESC');
+                $productsQuery->orderByRaw('COALESCE(sku_prices.min_price, products.base_price) DESC');
                 break;
             case 'name_asc':
                 $productsQuery->orderBy('products.name', 'asc');
@@ -222,27 +229,6 @@ class CategoryController extends Controller
             default:
                 $productsQuery->orderBy('products.name', 'asc');
         }
-    }
-
-    protected function getDescendantCategoryIds(int $rootCategoryId): Collection
-    {
-        $allIds = collect([$rootCategoryId]);
-        $currentLevel = collect([$rootCategoryId]);
-
-        while ($currentLevel->isNotEmpty()) {
-            $children = Category::query()
-                ->whereIn('parent_id', $currentLevel)
-                ->pluck('id');
-
-            if ($children->isEmpty()) {
-                break;
-            }
-
-            $allIds = $allIds->merge($children)->unique()->values();
-            $currentLevel = $children;
-        }
-
-        return $allIds;
     }
 
     protected function getLeafCategories(Collection $categoryIds, int $currentCategoryId): Collection

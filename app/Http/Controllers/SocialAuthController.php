@@ -59,6 +59,7 @@ class SocialAuthController extends Controller
             }
 
             Auth::login($socialAccount->user, true);
+            $this->mergeWishlist(request());
 
             return redirect()->intended(route('profile.index'));
         }
@@ -91,6 +92,7 @@ class SocialAuthController extends Controller
                 return redirect()->route('login')->with('error', $e->getMessage());
             }
             Auth::login($user, true);
+            $this->mergeWishlist(request());
 
             return redirect()->intended(route('profile.index'));
         }
@@ -104,6 +106,7 @@ class SocialAuthController extends Controller
         }
 
         Auth::login($user, true);
+        $this->mergeWishlist(request());
 
         return redirect()->route('profile.edit')->with('success', 'Аккаунт создан через '.ucfirst($provider).'. Пожалуйста, завершите регистрацию.');
     }
@@ -200,5 +203,22 @@ class SocialAuthController extends Controller
         }
 
         return back()->with('success', 'Аккаунт '.ucfirst($provider).' отвязан');
+    }
+
+    protected function mergeWishlist($request): void
+    {
+        if ($request->user()) {
+            $wishlistToken = $request->session()->get('wishlist_token');
+            if ($wishlistToken) {
+                app(\App\Services\WishlistService::class)->mergeGuestWishlist($request->user(), $wishlistToken);
+                $request->session()->forget('wishlist_token');
+            }
+
+            $cartToken = $request->session()->get('cart_token');
+            if ($cartToken) {
+                app(\App\Services\CartService::class)->mergeGuestCart($request->user(), $cartToken);
+                $request->session()->forget('cart_token');
+            }
+        }
     }
 }

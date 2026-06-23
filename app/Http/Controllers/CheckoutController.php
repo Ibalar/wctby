@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\DeliveryMethod;
 use App\Models\Order;
 use App\Models\PaymentMethod;
+use App\Notifications\NewOrderAdminNotification;
+use App\Notifications\OrderConfirmationNotification;
 use App\Services\CartService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 
 class CheckoutController extends Controller
 {
@@ -82,59 +85,76 @@ class CheckoutController extends Controller
         $shippingAmount = (float) $deliveryMethod->price;
         $total = $subtotal + $shippingAmount;
 
-        $order = DB::transaction(function () use ($request, $items, $validated, $deliveryMethod, $paymentMethod, $subtotal, $shippingAmount, $total) {
-            $order = Order::create([
-                'user_id' => $request->user()?->id,
-                'number' => $this->generateOrderNumber(),
-                'status' => 'new',
-                'currency' => 'BYN',
-                'subtotal' => $subtotal,
-                'discount_amount' => 0,
-                'shipping_amount' => $shippingAmount,
-                'total' => $total,
-                'payment_method' => $paymentMethod->code,
-                'delivery_method' => $deliveryMethod->code,
-                'payment_method_code' => $paymentMethod->code,
-                'payment_method_name' => $paymentMethod->name,
-                'delivery_method_code' => $deliveryMethod->code,
-                'delivery_method_name' => $deliveryMethod->name,
-                'delivery_price' => $shippingAmount,
-                'customer_name' => $validated['customer_name'],
-                'customer_phone' => $validated['customer_phone'],
-                'customer_email' => $validated['customer_email'] ?? null,
-                'shipping_address' => [
-                    'city' => $validated['city'],
-                    'street' => $validated['street'],
-                    'house' => $validated['house'],
-                    'apartment' => $validated['apartment'] ?? null,
-                ],
-            ]);
+        $maxAttempts = 5;
+        $attempt = 0;
 
-            foreach ($items as $item) {
-                $name = $item->purchasable_type === 'App\\Models\\Sku'
-                    ? ($item->purchasable->product->name ?? 'SKU #' . $item->purchasable_id)
-                    : ($item->purchasable->name ?? 'Product #' . $item->purchasable_id);
+        while ($attempt < $maxAttempts) {
+            try {
+                $order = DB::transaction(function () use ($request, $items, $validated, $deliveryMethod, $paymentMethod, $subtotal, $shippingAmount, $total) {
+                    $order = Order::create([
+                        'user_id' => $request->user()?->id,
+                        'number' => $this->generateOrderNumber(),
+                        'status' => 'new',
+                        'currency' => 'BYN',
+                        'subtotal' => $subtotal,
+                        'discount_amount' => 0,
+                        'shipping_amount' => $shippingAmount,
+                        'total' => $total,
+                        'payment_method' => $paymentMethod->code,
+                        'delivery_method' => $deliveryMethod->code,
+                        'payment_method_code' => $paymentMethod->code,
+                        'payment_method_name' => $paymentMethod->name,
+                        'delivery_method_code' => $deliveryMethod->code,
+                        'delivery_method_name' => $deliveryMethod->name,
+                        'delivery_price' => $shippingAmount,
+                        'customer_name' => $validated['customer_name'],
+                        'customer_phone' => $validated['customer_phone'],
+                        'customer_email' => $validated['customer_email'] ?? null,
+                        'shipping_address' => [
+                            'city' => $validated['city'],
+                            'street' => $validated['street'],
+                            'house' => $validated['house'],
+                            'apartment' => $validated['apartment'] ?? null,
+                        ],
+                    ]);
 
-                $sku = $item->purchasable_type === 'App\\Models\\Sku'
-                    ? ($item->purchasable->sku ?? null)
-                    : null;
+                    foreach ($items as $item) {
+                        $name = $item->purchasable_type === 'App\\Models\\Sku'
+                            ? ($item->purchasable->product->name ?? 'SKU #' . $item->purchasable_id)
+                            : ($item->purchasable->name ?? 'Product #' . $item->purchasable_id);
 
-                $order->items()->create([
-                    'item_type' => $item->purchasable_type,
-                    'item_id' => $item->purchasable_id,
-                    'name' => $name,
-                    'sku' => $sku,
-                    'price' => $item->price,
-                    'quantity' => $item->quantity,
-                    'line_total' => $item->price * $item->quantity,
-                    'meta' => null,
-                ]);
+                        $sku = $item->purchasable_type === 'App\\Models\\Sku'
+                            ? ($item->purchasable->sku ?? null)
+                            : null;
+
+                        $order->items()->create([
+                            'item_type' => $item->purchasable_type,
+                            'item_id' => $item->purchasable_id,
+                            'name' => $name,
+                            'sku' => $sku,
+                            'price' => $item->price,
+                            'quantity' => $item->quantity,
+                            'line_total' => $item->price * $item->quantity,
+                            'meta' => null,
+                        ]);
+                    }
+
+                    return $order;
+                });
+
+                break;
+            } catch (\Illuminate\Database\QueryException $e) {
+                $attempt++;
+
+                if ($attempt >= $maxAttempts || !$this->isDuplicateKeyException($e)) {
+                    throw $e;
+                }
             }
-
-            return $order;
-        });
+        }
 
         $this->cartService->clear($cart);
+
+        $this->sendOrderNotifications($order);
 
         return redirect()->route('checkout.success', ['orderNumber' => $order->number]);
     }
@@ -143,15 +163,40 @@ class CheckoutController extends Controller
     {
         $order = Order::where('number', $orderNumber)->with('items')->firstOrFail();
 
+        if ($order->user_id !== null && auth()->check() && $order->user_id !== auth()->id()) {
+            abort(403);
+        }
+
         return view('checkout.success', compact('order'));
     }
 
     protected function generateOrderNumber(): string
     {
-        do {
-            $number = 'ORD-' . now()->format('Ymd') . '-' . str_pad((string) random_int(1, 999999), 6, '0', STR_PAD_LEFT);
-        } while (Order::where('number', $number)->exists());
+        return 'ORD-' . now()->format('Ymd') . '-' . str_pad((string) random_int(1, 999999), 6, '0', STR_PAD_LEFT);
+    }
 
-        return $number;
+    protected function isDuplicateKeyException(\Illuminate\Database\QueryException $e): bool
+    {
+        $code = $e->errorInfo[0] ?? null;
+
+        return in_array($code, ['23000', '23505', '19'], true);
+    }
+
+    protected function sendOrderNotifications(Order $order): void
+    {
+        $order->load('items');
+
+        if ($order->user_id && $order->user) {
+            $order->user->notify(new OrderConfirmationNotification($order));
+        } elseif ($order->customer_email) {
+            Notification::route('mail', $order->customer_email)
+                ->notify(new OrderConfirmationNotification($order));
+        }
+
+        $adminEmail = config('mail.admin_email');
+        if ($adminEmail) {
+            Notification::route('mail', $adminEmail)
+                ->notify(new NewOrderAdminNotification($order));
+        }
     }
 }

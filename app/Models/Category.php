@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -9,7 +10,7 @@ use Illuminate\Support\Facades\Storage;
 
 class Category extends Model implements HasMedia
 {
-    use InteractsWithMedia;
+    use HasFactory, InteractsWithMedia;
 
     protected $fillable = [
         'parent_id',
@@ -48,14 +49,24 @@ class Category extends Model implements HasMedia
     }
 
     /**
-     * Получить всех потомков рекурсивно (включая текущую категорию)
+     * Получить всех потомков итеративно (включая текущую категорию)
      */
     public function descendants(): \Illuminate\Support\Collection
     {
         $descendants = collect([$this]);
+        $currentLevel = collect([$this->id]);
 
-        foreach ($this->children as $child) {
-            $descendants = $descendants->merge($child->descendants());
+        while ($currentLevel->isNotEmpty()) {
+            $children = static::query()
+                ->whereIn('parent_id', $currentLevel)
+                ->get();
+
+            if ($children->isEmpty()) {
+                break;
+            }
+
+            $descendants = $descendants->merge($children);
+            $currentLevel = $children->pluck('id');
         }
 
         return $descendants;

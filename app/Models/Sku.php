@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Sku extends Model
 {
+    use HasFactory;
     protected $fillable = ['product_id','sku','price','old_price','stock','is_active'];
 
     protected $casts = ['is_active' => 'boolean'];

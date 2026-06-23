@@ -87,6 +87,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(Cart::class);
     }
 
+    public function wishlists()
+    {
+        return $this->hasMany(Wishlist::class);
+    }
+
     public function getFullNameAttribute(): string
     {
         $parts = array_filter([

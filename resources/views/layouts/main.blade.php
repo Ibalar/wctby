@@ -192,10 +192,12 @@
                 }
 
                 try {
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
                     const response = await fetch(form.action, {
                         method: form.method || 'POST',
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': csrfToken,
                             'Accept': 'application/json',
                         },
                         body: new FormData(form),
@@ -235,6 +237,55 @@
                         submitButton.disabled = false;
                     }
                 }
+            });
+
+            document.querySelectorAll('.wishlist-toggle-btn').forEach(function(btn) {
+                btn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const productId = this.dataset.productId;
+                    const button = this;
+
+                    try {
+                        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                        
+                        const response = await fetch('/wishlist/toggle', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                            },
+                            body: JSON.stringify({ product_id: productId }),
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            if (data.added) {
+                                button.classList.add('text-danger');
+                                button.classList.remove('btn-secondary');
+                                button.classList.add('btn-danger');
+                            } else {
+                                button.classList.remove('text-danger');
+                                button.classList.add('btn-secondary');
+                                button.classList.remove('btn-danger');
+                            }
+
+                            document.querySelectorAll('[data-wishlist-count]').forEach(function(el) {
+                                el.textContent = data.count;
+                            });
+
+                            showFlashToast(data.message);
+                        } else {
+                            showFlashToast('Ошибка при обновлении избранного', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        showFlashToast('Ошибка при обновлении избранного', 'error');
+                    }
+                });
             });
         });
     </script>

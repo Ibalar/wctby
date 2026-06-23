@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "skills": {
+    "laravel-patterns": {
+      "source": "affaan-m/everything-claude-code",
+      "sourceType": "github",
+      "skillPath": "skills/laravel-patterns/SKILL.md",
+      "computedHash": "38faa9bb9ca64ef885a1d9df801296e738a1456ea1418e9f381b154b96bb29b2"
+    },
+    "laravel-specialist": {
+      "source": "jeffallan/claude-skills",
+      "sourceType": "github",
+      "skillPath": "skills/laravel-specialist/SKILL.md",
+      "computedHash": "805be17bd59f759e2f2f2dcbd6bd205ca6678420a87b21da1c16e0793093615c"
+    },
+    "moonshine-components": {
+      "source": "moonshine-software/forty-five",
+      "sourceType": "github",
+      "skillPath": "skills/moonshine-components/SKILL.md",
+      "computedHash": "b7d7eb70a7b17229cef5794e120de08035dd17425d9b04c8052f0a847766fac0"
+    },
+    "moonshine-field": {
+      "source": "moonshine-software/forty-five",
+      "sourceType": "github",
+      "skillPath": "skills/moonshine-field/SKILL.md",
+      "computedHash": "29cba50ba97987ddd01c66467e1d1e31f6b3de606ffa49307731e3272d2375ad"
+    },
+    "moonshine-layout": {
+      "source": "moonshine-software/forty-five",
+      "sourceType": "github",
+      "skillPath": "skills/moonshine-layout/SKILL.md",
+      "computedHash": "b29a1f604decd2d85e46c31e3820197e553d4dab57a2978785f5d89a17a10131"
+    },
+    "php-pro": {
+      "source": "jeffallan/claude-skills",
+      "sourceType": "github",
+      "skillPath": "skills/php-pro/SKILL.md",
+      "computedHash": "1cd5289325d0924d6fca4f950711bc9b63d873338cf3b4acd00db62603aebeda"
+    }
+  }
+}

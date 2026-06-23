@@ -22,7 +22,7 @@ class OrderResource extends ModelResource
 
     protected string $title = 'Заказы';
 
-    protected string $column = 'name';
+    protected string $column = 'number';
 
     /**
      * @return list<class-string<PageContract>>

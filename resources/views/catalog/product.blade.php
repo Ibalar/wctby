@@ -150,6 +150,15 @@
                                     <i class="ci-shopping-cart fs-lg animate-target ms-n1 me-2"></i>
                                     Заказать
                                 </button>
+
+                                <button 
+                                    type="button" 
+                                    class="btn btn-lg btn-outline-secondary wishlist-toggle-btn order-sm-3 order-md-2 order-lg-3"
+                                    data-product-id="{{ $product->id }}"
+                                    aria-label="Добавить в избранное"
+                                >
+                                    <i class="ci-heart fs-lg"></i>
+                                </button>
                             </div>
                         </form>
 
@@ -171,7 +180,7 @@
                         @if($product->description)
                             <div class="mt-5">
                                 <h2 class="h5 mb-3">Описание</h2>
-                                <div class="text-body-secondary">{!! $product->description !!}</div>
+                                <div class="text-body-secondary">{!! $product->safe_description !!}</div>
                             </div>
                         @endif
                     </div>

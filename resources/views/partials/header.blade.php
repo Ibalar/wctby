@@ -27,10 +27,10 @@
             </div>
             <div class="col col-lg-9 d-flex align-items-center justify-content-end">
                 <!-- Search visible on screens > 991px wide (lg breakpoint) -->
-                <div class="position-relative flex-fill d-none d-lg-block pe-4 pe-xl-5">
+                <form action="{{ route('search') }}" method="GET" class="position-relative flex-fill d-none d-lg-block pe-4 pe-xl-5">
                     <i class="ci-search position-absolute top-50 translate-middle-y d-flex fs-lg text-white ms-3"></i>
-                    <input type="search" class="form-control form-control-lg form-icon-start border-white rounded-pill" placeholder="Поиск товаров">
-                </div>
+                    <input type="search" name="q" class="form-control form-control-lg form-icon-start border-white rounded-pill" placeholder="Поиск товаров" value="{{ request('q') }}">
+                </form>
 
                 <!-- Sale link visible on screens > 1200px wide (xl breakpoint) -->
                 <a class="d-none d-xl-flex align-items-center text-decoration-none animate-shake navbar-stuck-hide me-3 me-xl-4 me-xxl-5" href="#">
@@ -111,7 +111,8 @@
                     @endguest
 
                     <!-- Wishlist button visible on screens > 768px wide (md breakpoint) -->
-                    <a class="btn btn-icon btn-lg fs-lg btn-outline-secondary border-0 rounded-circle animate-pulse d-none d-md-inline-flex" href="#">
+                    <a class="btn btn-icon btn-lg fs-lg btn-outline-secondary border-0 rounded-circle animate-pulse d-none d-md-inline-flex position-relative" href="{{ route('wishlist.index') }}">
+                        <span class="position-absolute top-0 start-100 mt-n1 ms-n3 badge text-bg-danger border border-3 border-dark rounded-pill" data-wishlist-count style="--cz-badge-padding-y: .25em; --cz-badge-padding-x: .42em">{{ $wishlistCount ?? 0 }}</span>
                         <i class="ci-heart animate-target"></i>
                         <span class="visually-hidden">Избранное</span>
                     </a>
@@ -131,10 +132,10 @@
 
     <!-- Search visible on screens < 992px wide (lg breakpoint). It is hidden inside collapse by default -->
     <div class="collapse position-absolute top-100 z-2 w-100 bg-dark d-lg-none" id="searchBar">
-        <div class="container position-relative my-3" data-bs-theme="dark">
+        <form action="{{ route('search') }}" method="GET" class="container position-relative my-3" data-bs-theme="dark">
             <i class="ci-search position-absolute top-50 translate-middle-y d-flex fs-lg text-white ms-3"></i>
-            <input type="search" class="form-control form-icon-start border-white rounded-pill" placeholder="Поиск товаров" data-autofocus="collapse">
-        </div>
+            <input type="search" name="q" class="form-control form-icon-start border-white rounded-pill" placeholder="Поиск товаров" data-autofocus="collapse" value="{{ request('q') }}">
+        </form>
     </div>
 
     <!-- Main navigation that turns into offcanvas on screens < 992px wide (lg breakpoint) -->
@@ -182,9 +183,9 @@
                         <i class="ci-user fs-lg opacity-60 me-2"></i>
                         Аккаунт
                     </a>
-                    <a class="nav-link" href="#">
+                    <a class="nav-link" href="{{ route('wishlist.index') }}">
                         <i class="ci-heart fs-lg opacity-60 me-2"></i>
-                        Избранное
+                        Избранное (<span data-wishlist-count>{{ $wishlistCount ?? 0 }}</span>)
                     </a>
                 </div>
             </div>

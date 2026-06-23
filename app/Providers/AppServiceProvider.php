@@ -7,7 +7,9 @@ use App\Http\Responses\PasswordResetResponse;
 use App\Http\Responses\RegisterResponse;
 use App\Http\Responses\TwoFactorLoginResponse;
 use App\Models\Category;
+use App\Observers\CategoryObserver;
 use App\Services\CartService;
+use App\Services\CategoryService;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
@@ -36,21 +38,13 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->guardDestructiveDatabaseCommands();
 
+        Category::observe(CategoryObserver::class);
+
         View::composer('partials.header', function ($view) {
             static $categories = null;
 
             if ($categories === null) {
-                $categories = Category::with([
-                        'children' => fn ($query) => $query
-                            ->where('is_active', true)
-                            ->orderBy('sort_order')
-                            ->with('promoProduct:id,slug'),
-                        'promoProduct:id,slug',
-                    ])
-                    ->whereNull('parent_id')
-                    ->where('is_active', true)
-                    ->orderBy('sort_order')
-                    ->get();
+                $categories = app(CategoryService::class)->getTree();
             }
 
             $view->with('categories', $categories);
@@ -84,6 +78,30 @@ class AppServiceProvider extends ServiceProvider
                 ->with('cartCount', $summary['count'])
                 ->with('cartTotal', $summary['total'])
                 ->with('cartSavings', $summary['savings']);
+        });
+
+        View::composer('partials.header', function ($view) {
+            static $wishlistCount = null;
+
+            $request = request();
+
+            if (!$request || !$request->hasSession()) {
+                $view->with('wishlistCount', 0);
+                return;
+            }
+
+            if ($wishlistCount === null) {
+                if ($request->user()) {
+                    $wishlistCount = \App\Models\Wishlist::where('user_id', $request->user()->id)->count();
+                } else {
+                    $sessionToken = $request->session()->get('wishlist_token');
+                    $wishlistCount = $sessionToken 
+                        ? \App\Models\Wishlist::where('session_token', $sessionToken)->count()
+                        : 0;
+                }
+            }
+
+            $view->with('wishlistCount', $wishlistCount);
         });
     }
 

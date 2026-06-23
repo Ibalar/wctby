@@ -21,7 +21,12 @@
         <div class="position-relative">
             <div class="position-absolute top-0 end-0 z-2 hover-effect-target opacity-0 mt-3 me-3">
                 <div class="d-flex flex-column gap-2">
-                    <button type="button" class="btn btn-icon btn-secondary animate-pulse d-none d-lg-inline-flex" aria-label="Добавить в избранное">
+                    <button 
+                        type="button" 
+                        class="btn btn-icon btn-secondary animate-pulse d-none d-lg-inline-flex wishlist-toggle-btn"
+                        data-product-id="{{ $product->id }}"
+                        aria-label="Добавить в избранное"
+                    >
                         <i class="ci-heart fs-base animate-target"></i>
                     </button>
                     <button type="button" class="btn btn-icon btn-secondary animate-rotate d-none d-lg-inline-flex" aria-label="Сравнить">
@@ -36,7 +41,7 @@
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end fs-xs p-2" style="min-width: auto">
                     <li>
-                        <a class="dropdown-item" href="#!">
+                        <a class="dropdown-item wishlist-toggle-btn" href="#!" data-product-id="{{ $product->id }}">
                             <i class="ci-heart fs-sm ms-n1 me-2"></i>
                             В избранное
                         </a>

@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\MoonShine\Resources\Category\CategoryResource;
 use App\MoonShine\Resources\Product\ProductResource;
+use Illuminate\Support\Facades\Cache;
 use MoonShine\Laravel\Pages\Page;
 use MoonShine\Contracts\UI\ComponentContract;
 use MoonShine\UI\Components\ActionButton;
@@ -42,10 +43,21 @@ class Dashboard extends Page
      */
     protected function components(): iterable
 	{
-        $todayOrders = Order::query()
-            ->whereDate('created_at', today())
-            ->selectRaw('COUNT(*) as total_orders, COALESCE(SUM(total), 0) as total_revenue')
-            ->first();
+        $metrics = Cache::remember('dashboard.metrics', 300, function () {
+            $todayOrders = Order::query()
+                ->whereDate('created_at', today())
+                ->selectRaw('COUNT(*) as total_orders, COALESCE(SUM(total), 0) as total_revenue')
+                ->first();
+
+            return [
+                'products_total' => (int) Product::count(),
+                'products_active' => (int) Product::where('is_active', true)->count(),
+                'categories' => (int) Category::count(),
+                'users' => (int) User::count(),
+                'orders_today' => (int) ($todayOrders?->total_orders ?? 0),
+                'revenue_today' => (float) ($todayOrders?->total_revenue ?? 0),
+            ];
+        });
 
         return [
 
@@ -55,7 +67,7 @@ class Dashboard extends Page
                     Column::make(
                         [
                             ValueMetric::make('Товаров')
-                                ->value((int) Product::count()),
+                                ->value($metrics['products_total']),
                         ],
                         colSpan: 3,
                         adaptiveColSpan: 6
@@ -63,7 +75,7 @@ class Dashboard extends Page
                     Column::make(
                         [
                             ValueMetric::make('Активных товаров')
-                                ->value((int) Product::where('is_active', true)->count()),
+                                ->value($metrics['products_active']),
                         ],
                         colSpan: 3,
                         adaptiveColSpan: 6
@@ -71,7 +83,7 @@ class Dashboard extends Page
                     Column::make(
                         [
                             ValueMetric::make('Категорий')
-                                ->value((int) Category::count()),
+                                ->value($metrics['categories']),
                         ],
                         colSpan: 3,
                         adaptiveColSpan: 6
@@ -79,7 +91,7 @@ class Dashboard extends Page
                     Column::make(
                         [
                             ValueMetric::make('Пользователей')
-                                ->value((int) User::count()),
+                                ->value($metrics['users']),
                         ],
                         colSpan: 3,
                         adaptiveColSpan: 6
@@ -87,7 +99,7 @@ class Dashboard extends Page
                     Column::make(
                         [
                             ValueMetric::make('Заказов сегодня')
-                                ->value((int) ($todayOrders?->total_orders ?? 0)),
+                                ->value($metrics['orders_today']),
                         ],
                         colSpan: 3,
                         adaptiveColSpan: 6
@@ -95,7 +107,7 @@ class Dashboard extends Page
                     Column::make(
                         [
                             ValueMetric::make('Выручка сегодня')
-                                ->value((float) ($todayOrders?->total_revenue ?? 0))
+                                ->value($metrics['revenue_today'])
                                 ->valueFormat(fn (float $value): string => number_format($value, 2) . ' BYN'),
                         ],
                         colSpan: 3,

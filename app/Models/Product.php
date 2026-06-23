@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Services\HtmlSanitizer;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -9,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Product extends Model implements HasMedia
 {
-    use InteractsWithMedia;
+    use HasFactory, InteractsWithMedia;
 
     protected $fillable = [
         'category_id','type','name','slug','sku','short_description','images',
@@ -60,4 +62,8 @@ class Product extends Model implements HasMedia
             ->singleFile(false);
     }
 
+    public function getSafeDescriptionAttribute(): string
+    {
+        return app(HtmlSanitizer::class)->clean($this->description);
+    }
 }
