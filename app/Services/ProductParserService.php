@@ -263,25 +263,45 @@ class ProductParserService
     {
         $specs = [];
 
-        // Пробуем несколько селекторов для поиска таблиц характеристик
-        $specSelectors = [
-            'table[class*="spec"] tr',
-            'table[class*="char"] tr',
-            'table[class*="prop"] tr',
-            '.product-specs tr',
-            '.offers-description__specs tr',
-            '[class*="specification"] tr',
-            'table tr',
-        ];
+        // Подход 1: <dl>/<dt>/<dd> — Onliner и многие используют этот формат
+        try {
+            $dts = $crawler->filter('dl dt, [class*="spec"] dt, [class*="char"] dt');
+            if ($dts->count() > 0) {
+                $dts->each(function ($dt) use (&$specs) {
+                    try {
+                        $key = trim($dt->text());
+                        $key = rtrim($key, ":\s");
 
-        foreach ($specSelectors as $sel) {
+                        // Ищем следующий dd после этого dt
+                        $dd = $dt->nextAll()->filter('dd')->first();
+                        if ($dd->count() === 0) {
+                            $dd = $dt->parents()->first()->nextAll()->filter('dd')->first();
+                        }
+                        $value = $dd->count() > 0 ? trim($dd->text()) : '';
+
+                        if (!empty($key) && !empty($value) && mb_strlen($key) < 100) {
+                            $specs[$key] = $value;
+                        }
+                    } catch (\Exception) {}
+                });
+
+                if (count($specs) >= 2) return $specs;
+            }
+        } catch (\Exception) {}
+
+        // Подход 2: table с th/td или td/td
+        $tableSelectors = [
+            'table tr', 'table[class*="spec"] tr', 'table[class*="char"] tr',
+            '[class*="spec"] table tr', '.product-specs tr', '.offers-description tr',
+        ];
+        foreach ($tableSelectors as $sel) {
             try {
                 $rows = $crawler->filter($sel);
                 if ($rows->count() === 0) continue;
 
+                $specs = []; // Reset for this selector
                 $rows->each(function ($row) use (&$specs) {
                     try {
-                        // Пробуем th+td
                         $th = $row->filter('th');
                         $td = $row->filter('td');
 
@@ -289,7 +309,6 @@ class ProductParserService
                             $key = trim($th->first()->text());
                             $value = trim($td->first()->text());
                         } elseif ($td->count() >= 2) {
-                            // Два td в строке
                             $key = trim($td->eq(0)->text());
                             $value = trim($td->eq(1)->text());
                         } else {
@@ -303,29 +322,34 @@ class ProductParserService
                     } catch (\Exception) {}
                 });
 
-                if (count($specs) >= 3) break; // Нашли достаточно
+                if (count($specs) >= 2) return $specs;
             } catch (\Exception) {
                 continue;
             }
         }
 
-        // Fallback: dl/dt/dd списки
-        if (empty($specs)) {
-            try {
-                $dts = $crawler->filter('dl dt');
-                $dts->each(function ($dt, $i) use ($crawler, &$specs) {
+        // Подход 3: div-структура (ключ: span.label, значение: span.value)
+        try {
+            $rows = $crawler->filter('[class*="spec"] div, [class*="char"] div, [class*="prop"] div');
+            if ($rows->count() > 0) {
+                $specs = [];
+                $rows->each(function ($row) use (&$specs) {
                     try {
-                        $key = trim($dt->text());
-                        $key = rtrim($key, ":\s");
-                        $dds = $crawler->filter('dl dd');
-                        $value = $dds->eq($i)->count() > 0 ? trim($dds->eq($i)->text()) : '';
-                        if (!empty($key) && !empty($value) && mb_strlen($key) < 100) {
-                            $specs[$key] = $value;
+                        $label = $row->filter('[class*="label"], [class*="name"], [class*="title"], span:first-child');
+                        $value = $row->filter('[class*="value"], [class*="text"], span:last-child');
+                        if ($label->count() > 0 && $value->count() > 0) {
+                            $key = trim($label->first()->text());
+                            $key = rtrim($key, ":\s");
+                            $val = trim($value->first()->text());
+                            if (!empty($key) && !empty($val) && mb_strlen($key) < 100) {
+                                $specs[$key] = $val;
+                            }
                         }
                     } catch (\Exception) {}
                 });
-            } catch (\Exception) {}
-        }
+                if (count($specs) >= 2) return $specs;
+            }
+        } catch (\Exception) {}
 
         return $specs;
     }
@@ -381,8 +405,25 @@ class ProductParserService
     {
         foreach ($images as $imageUrl) {
             try {
-                $product->addMediaFromUrl($imageUrl)->toMediaCollection('images');
-                Log::info('[ProductParser] Image downloaded', ['url' => $imageUrl]);
+                // Скачиваем файл локально, затем добавляем в media-library
+                $tempPath = tempnam(sys_get_temp_dir(), 'parser_');
+                $response = Http::timeout(30)->get($imageUrl);
+
+                if ($response->successful()) {
+                    file_put_contents($tempPath, $response->body());
+
+                    $media = $product
+                        ->addMedia($tempPath)
+                        ->preservingOriginal()
+                        ->toMediaCollection('images');
+
+                    Log::info('[ProductParser] Image downloaded', [
+                        'url' => $imageUrl,
+                        'media_id' => $media->id,
+                    ]);
+                }
+
+                @unlink($tempPath);
             } catch (\Exception $e) {
                 Log::warning('[ProductParser] Image download failed', [
                     'url' => $imageUrl,
