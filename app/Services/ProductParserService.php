@@ -170,6 +170,7 @@ class ProductParserService
         }
 
         $product = Product::create([
+            'category_id' => null,
             'name' => $name,
             'slug' => $slug,
             'sku' => 'parsed-' . Str::random(8),
