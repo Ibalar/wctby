@@ -11,7 +11,6 @@ use MoonShine\Contracts\UI\FieldContract;
 use MoonShine\Laravel\Fields\Relationships\BelongsTo;
 use MoonShine\Laravel\Pages\Crud\IndexPage;
 use MoonShine\Support\ListOf;
-use MoonShine\UI\Components\ActionButton;
 use MoonShine\UI\Components\Metrics\Wrapped\Metric;
 use MoonShine\UI\Components\Table\TableBuilder;
 use MoonShine\UI\Fields\ID;
@@ -91,10 +90,6 @@ class ProductIndexPage extends IndexPage
     protected function topLayer(): array
     {
         return [
-            ActionButton::make('Экспорт CSV', route('admin.products.export'))
-                ->primary(),
-            ActionButton::make('Импорт CSV', url('/admin/import'))
-                ->secondary(),
             ...parent::topLayer()
         ];
     }
