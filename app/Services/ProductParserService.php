@@ -22,27 +22,40 @@ class ProductParserService
     {
         Log::info('[ProductParser] Fetching URL', ['url' => $url]);
 
-        $response = Http::withUserAgent(
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        )->timeout(30)->get($url);
+        $response = Http::withHeaders([
+            'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+            'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language' => 'ru-RU,ru;q=0.9',
+        ])->timeout(30)->get($url);
 
         if (!$response->successful()) {
-            throw new \Exception("Failed to fetch URL: HTTP {$response->status()}");
+            throw new \Exception("HTTP {$response->status()}: страница недоступна");
         }
 
         $html = $response->body();
+
+        if (empty(trim($html))) {
+            throw new \Exception('Пустой ответ от сервера');
+        }
+
         $crawler = new Crawler($html);
         $siteCode = $this->detectSite($url);
-
         $selectors = $this->getSelectors($siteCode);
+
         $result = $this->extractData($crawler, $selectors);
+
+        if (empty($result['name'])) {
+            throw new \Exception('Не удалось извлечь название товара. Проверьте селекторы для сайта ' . $siteCode);
+        }
+
         $result['source_url'] = $url;
         $result['site_code'] = $siteCode;
 
         Log::info('[ProductParser] Parsed successfully', [
             'url' => $url,
             'site' => $siteCode,
-            'name' => $result['name'] ?? 'N/A',
+            'name' => $result['name'],
+            'price' => $result['price'] ?? 'N/A',
         ]);
 
         return $result;
