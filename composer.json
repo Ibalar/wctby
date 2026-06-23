@@ -19,6 +19,8 @@
         "moonshine/tinymce": "^2.0",
         "spatie/laravel-medialibrary": "^11.17",
         "spatie/laravel-permission": "^6.23",
+        "symfony/dom-crawler": "^7.0",
+        "symfony/css-selector": "^7.0",
         "unisharp/laravel-filemanager": "^2.12"
     },
     "require-dev": {
