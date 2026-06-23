@@ -18,6 +18,23 @@ class ProductParserService
         $this->config = config('parsers', []);
     }
 
+    protected function cleanText(?string $text): ?string
+    {
+        if ($text === null) return null;
+        // Удаляем невалидные UTF-8 байты
+        $text = mb_convert_encoding($text, 'UTF-8', 'UTF-8');
+        return trim($text);
+    }
+
+    protected function cleanArray(array $data): array
+    {
+        return array_map(function ($value) {
+            if (is_string($value)) return $this->cleanText($value);
+            if (is_array($value)) return $this->cleanArray($value);
+            return $value;
+        }, $data);
+    }
+
     public function parseFromUrl(string $url): array
     {
         Log::info('[ProductParser] Fetching URL', ['url' => $url]);
@@ -50,6 +67,7 @@ class ProductParserService
 
         $result['source_url'] = $url;
         $result['site_code'] = $siteCode;
+        $result = $this->cleanArray($result);
 
         // Извлечение доп. изображений
         $result['images'] = $this->extractImages($crawler, $url);
@@ -164,8 +182,8 @@ class ProductParserService
                     $node = $crawler->filter($selector)->first();
                     if ($node->count() > 0) {
                         $data[$field] = $attr
-                            ? $node->attr($attr)
-                            : trim($node->text());
+                            ? $this->cleanText($node->attr($attr))
+                            : $this->cleanText($node->text());
                         break;
                     }
                 } catch (\Exception) {
@@ -188,31 +206,13 @@ class ProductParserService
     {
         $images = [];
 
-        // 1. Главное изображение — крупный оригинал (Onliner: a.product-gallery__zoom)
+        // 1. Onliner: <a class="product-gallery__zoom" href="...">
         try {
-            $mainLink = $crawler->filter('a[class*="zoom"], a[class*="gallery"], a[href*=".jpg"], a[href*=".jpeg"]')->first();
-            if ($mainLink->count() > 0) {
-                $href = $mainLink->attr('href');
-                // Пробуем заменить размеры на крупные в imgproxy URL
-                $largeHref = preg_replace('/w:\d+/', 'w:700', $href);
-                $largeHref = preg_replace('/h:\d+/', 'h:550', $largeHref);
-                $resolved = $this->resolveImageUrl($largeHref, $sourceUrl);
-                if ($resolved) {
-                    $images[] = $resolved;
-                }
-            }
-        } catch (\Exception) {}
-
-        // 2. Все <a> с изображениями
-        try {
-            $crawler->filter('a[href*=".jpg"], a[href*=".jpeg"], a[href*=".png"]')->each(
+            $crawler->filter('a[class*="product-gallery"], a[class*="gallery"], a[class*="zoom"]')->each(
                 function ($node) use (&$images, $sourceUrl) {
                     $href = $node->attr('href');
-                    if ($href) {
-                        // Заменяем размеры на крупные
-                        $largeHref = preg_replace('/w:\d+/', 'w:700', $href);
-                        $largeHref = preg_replace('/h:\d+/', 'h:550', $largeHref);
-                        $resolved = $this->resolveImageUrl($largeHref, $sourceUrl);
+                    if ($href && str_contains($href, 'imgproxy') || str_contains($href, 'onliner')) {
+                        $resolved = $this->resolveImageUrl($href, $sourceUrl);
                         if ($resolved && !in_array($resolved, $images)) {
                             $images[] = $resolved;
                         }
@@ -221,22 +221,39 @@ class ProductParserService
             );
         } catch (\Exception) {}
 
-        // 3. <img> теги
-        try {
-            $crawler->filter('img[src*=".jpg"], img[src*=".jpeg"], img[src*=".png"]')->each(
-                function ($node) use (&$images, $sourceUrl) {
-                    $src = $node->attr('src') ?? $node->attr('data-src');
-                    if ($src) {
-                        $largeSrc = preg_replace('/w:\d+/', 'w:700', $src);
-                        $largeSrc = preg_replace('/h:\d+/', 'h:550', $largeSrc);
-                        $resolved = $this->resolveImageUrl($largeSrc, $sourceUrl);
-                        if ($resolved && !in_array($resolved, $images)) {
-                            $images[] = $resolved;
+        // 2. <a> с изображениями (href содержит /content/ или imgproxy)
+        if (empty($images)) {
+            try {
+                $crawler->filter('a[href*="imgproxy"], a[href*="/content/"], a[href*="/catalog/device/"]')->each(
+                    function ($node) use (&$images, $sourceUrl) {
+                        $href = $node->attr('href');
+                        if ($href) {
+                            $resolved = $this->resolveImageUrl($href, $sourceUrl);
+                            if ($resolved && !in_array($resolved, $images) && !str_contains($resolved, 'logo')) {
+                                $images[] = $resolved;
+                            }
                         }
                     }
-                }
-            );
-        } catch (\Exception) {}
+                );
+            } catch (\Exception) {}
+        }
+
+        // 3. <img> с imgproxy
+        if (empty($images)) {
+            try {
+                $crawler->filter('img[src*="imgproxy"], img[src*="/content/"]')->each(
+                    function ($node) use (&$images, $sourceUrl) {
+                        $src = $node->attr('src') ?? $node->attr('data-src');
+                        if ($src) {
+                            $resolved = $this->resolveImageUrl($src, $sourceUrl);
+                            if ($resolved && !in_array($resolved, $images) && !str_contains($resolved, 'logo')) {
+                                $images[] = $resolved;
+                            }
+                        }
+                    }
+                );
+            } catch (\Exception) {}
+        }
 
         Log::info('[ProductParser] Images found', ['count' => count($images)]);
 
