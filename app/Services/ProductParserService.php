@@ -206,53 +206,58 @@ class ProductParserService
     {
         $images = [];
 
-        // 1. Onliner: <a class="product-gallery__zoom" href="...">
-        try {
-            $crawler->filter('a[class*="product-gallery"], a[class*="gallery"], a[class*="zoom"]')->each(
-                function ($node) use (&$images, $sourceUrl) {
-                    $href = $node->attr('href');
-                    if ($href && str_contains($href, 'imgproxy') || str_contains($href, 'onliner')) {
-                        $resolved = $this->resolveImageUrl($href, $sourceUrl);
-                        if ($resolved && !in_array($resolved, $images)) {
-                            $images[] = $resolved;
-                        }
-                    }
-                }
-            );
-        } catch (\Exception) {}
+        // Только изображения товара — внутри masthead/gallery контейнера
+        $containerSelectors = [
+            '.catalog-masthead',
+            '[class*="product-gallery"]',
+            '[class*="product-masthead"]',
+            '[class*="gallery"]',
+            '[itemscope][itemtype*="Product"]',
+        ];
 
-        // 2. <a> с изображениями (href содержит /content/ или imgproxy)
-        if (empty($images)) {
+        foreach ($containerSelectors as $containerSel) {
             try {
-                $crawler->filter('a[href*="imgproxy"], a[href*="/content/"], a[href*="/catalog/device/"]')->each(
+                $container = $crawler->filter($containerSel)->first();
+                if ($container->count() === 0) continue;
+
+                // <a> с href внут��и контейнера
+                $container->filter('a[href]')->each(
                     function ($node) use (&$images, $sourceUrl) {
                         $href = $node->attr('href');
-                        if ($href) {
+                        if ($href && (str_contains($href, 'imgproxy') || str_contains($href, '/content/'))) {
                             $resolved = $this->resolveImageUrl($href, $sourceUrl);
-                            if ($resolved && !in_array($resolved, $images) && !str_contains($resolved, 'logo')) {
+                            if ($resolved && !in_array($resolved, $images) && !str_contains($resolved, '/navigation/')) {
                                 $images[] = $resolved;
                             }
                         }
                     }
                 );
-            } catch (\Exception) {}
+
+                if (!empty($images)) break;
+            } catch (\Exception) {
+                continue;
+            }
         }
 
-        // 3. <img> с imgproxy
+        // Fallback: img внутри контейнера
         if (empty($images)) {
-            try {
-                $crawler->filter('img[src*="imgproxy"], img[src*="/content/"]')->each(
-                    function ($node) use (&$images, $sourceUrl) {
-                        $src = $node->attr('src') ?? $node->attr('data-src');
-                        if ($src) {
-                            $resolved = $this->resolveImageUrl($src, $sourceUrl);
-                            if ($resolved && !in_array($resolved, $images) && !str_contains($resolved, 'logo')) {
-                                $images[] = $resolved;
+            foreach (['.catalog-masthead', '[class*="product-gallery"]', '[class*="masthead"]'] as $sel) {
+                try {
+                    $container = $crawler->filter($sel)->first();
+                    if ($container->count() > 0) {
+                        $container->filter('img')->each(function ($node) use (&$images, $sourceUrl) {
+                            $src = $node->attr('src') ?? $node->attr('data-src');
+                            if ($src && !str_contains($src, 'logo') && !str_contains($src, 'icon')) {
+                                $resolved = $this->resolveImageUrl($src, $sourceUrl);
+                                if ($resolved && !in_array($resolved, $images)) {
+                                    $images[] = $resolved;
+                                }
                             }
-                        }
+                        });
+                        if (!empty($images)) break;
                     }
-                );
-            } catch (\Exception) {}
+                } catch (\Exception) {}
+            }
         }
 
         Log::info('[ProductParser] Images found', ['count' => count($images)]);
