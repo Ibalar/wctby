@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Attribute;
 use App\Models\Category;
 use App\Models\Product;
 use App\Services\BreadcrumbService;
@@ -64,13 +65,14 @@ class CategoryController extends Controller
         $statuses = array_filter(Arr::wrap(request('status')));
         $priceMin = request('price_min');
         $priceMax = request('price_max');
+        $optionIds = array_filter(array_map('intval', Arr::wrap(request('option'))));
 
         $productsQuery = Product::query()
             ->whereIn('category_id', $categoryIds)
             ->where('products.is_active', true)
             ->with(['skus' => fn ($q) => $q->where('is_active', true)])
             ->with('media')
-            ->tap(fn (Builder $query) => $this->applyProductsFiltersAndSort($query, $statuses, $priceMin, $priceMax, $sort));
+            ->tap(fn (Builder $query) => $this->applyProductsFiltersAndSort($query, $statuses, $priceMin, $priceMax, $sort, $optionIds));
 
         $products = $productsQuery->paginate(12)->withQueryString();
 
@@ -130,6 +132,35 @@ class CategoryController extends Controller
             'max_price' => $maxPrice,
         ];
 
+        $filterableAttributes = Attribute::query()
+            ->where('is_filterable', true)
+            ->with(['options'])
+            ->orderBy('sort_order')
+            ->get()
+            ->map(function (Attribute $attribute) use ($categoryIds): array {
+                $options = $attribute->options->map(function ($option) use ($categoryIds): array {
+                    $count = DB::table('attribute_option_product')
+                        ->join('products', 'products.id', '=', 'attribute_option_product.product_id')
+                        ->where('attribute_option_product.attribute_option_id', $option->id)
+                        ->whereIn('products.category_id', $categoryIds)
+                        ->where('products.is_active', true)
+                        ->count();
+
+                    return [
+                        'id' => $option->id,
+                        'value' => $option->value,
+                        'count' => $count,
+                    ];
+                })->filter(fn (array $opt): bool => $opt['count'] > 0)->values();
+
+                return [
+                    'id' => $attribute->id,
+                    'name' => $attribute->name,
+                    'code' => $attribute->code,
+                    'options' => $options,
+                ];
+            })->filter(fn (array $attr): bool => $attr['options']->isNotEmpty())->values();
+
         return view('catalog.category', compact(
             'category',
             'products',
@@ -137,7 +168,9 @@ class CategoryController extends Controller
             'leafCategories',
             'allFlags',
             'priceRange',
-            'totalProducts'
+            'totalProducts',
+            'filterableAttributes',
+            'optionIds',
         ));
     }
 
@@ -152,13 +185,14 @@ class CategoryController extends Controller
         $statuses = array_filter(Arr::wrap(request('status')));
         $priceMin = request('price_min');
         $priceMax = request('price_max');
+        $optionIds = array_filter(array_map('intval', Arr::wrap(request('option'))));
 
         $productsQuery = Product::query()
             ->whereIn('category_id', $categoryIds)
             ->where('products.is_active', true)
             ->with(['skus' => fn ($q) => $q->where('is_active', true)])
             ->with('media')
-            ->tap(fn (Builder $query) => $this->applyProductsFiltersAndSort($query, $statuses, $priceMin, $priceMax, $sort));
+            ->tap(fn (Builder $query) => $this->applyProductsFiltersAndSort($query, $statuses, $priceMin, $priceMax, $sort, $optionIds));
 
         $products = $productsQuery->paginate(12);
 
@@ -170,7 +204,8 @@ class CategoryController extends Controller
         array $statuses,
         mixed $priceMin,
         mixed $priceMax,
-        ?string $sort
+        ?string $sort,
+        array $optionIds = [],
     ): void {
         $productsQuery->leftJoinSub(
             DB::table('skus')
@@ -182,6 +217,12 @@ class CategoryController extends Controller
             '=',
             'products.id'
         );
+
+        if (!empty($optionIds)) {
+            $productsQuery->whereHas('attributeOptions', function (Builder $q) use ($optionIds): void {
+                $q->whereIn('attribute_option_id', $optionIds);
+            });
+        }
 
         if (!empty($statuses)) {
             $productsQuery->where(function (Builder $query) use ($statuses): void {

@@ -192,6 +192,40 @@
                             </div>
                         </div>
 
+                        <!-- Атрибуты -->
+                        @if(!empty($filterableAttributes))
+                        @foreach($filterableAttributes as $attribute)
+                            <div class="w-100 border rounded p-3 p-xl-4 mb-3 mb-xl-4">
+                                <h4 class="h6 mb-2">{{ $attribute['name'] }}</h4>
+                                <ul class="nav flex-column fs-sm">
+                                    @foreach($attribute['options'] as $option)
+                                        @php
+                                            $selectedOptionIds = array_map('strval', $optionIds);
+                                            $isActive = in_array((string)$option['id'], $selectedOptionIds);
+                                            $query = request()->query();
+                                            $optionIdsArr = $query['option'] ?? [];
+                                            if (!is_array($optionIdsArr)) $optionIdsArr = [];
+                                            $optionIdStr = (string)$option['id'];
+                                            if ($isActive) {
+                                                $query['option'] = array_values(array_filter($optionIdsArr, fn($id) => (string)$id !== $optionIdStr));
+                                                if (empty($query['option'])) unset($query['option']);
+                                            } else {
+                                                $query['option'] = array_merge($optionIdsArr, [$optionIdStr]);
+                                            }
+                                        @endphp
+                                        <li>
+                                            <a href="{{ route('catalog.category', array_merge($query, ['slug' => $category->slug])) }}"
+                                               class="nav-link d-flex justify-content-between align-items-center px-0 py-1{{ $isActive ? ' active' : '' }}">
+                                                <span>{{ $option['value'] }}</span>
+                                                <span class="badge text-body-tertiary ms-2">{{ $option['count'] }}</span>
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endforeach
+                        @endif
+
                     </div>
                 </div>
             </aside>
