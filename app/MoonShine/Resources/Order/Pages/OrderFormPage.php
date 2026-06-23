@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\MoonShine\Resources\Order\Pages;
 
+use App\Enums\OrderStatus;
 use MoonShine\Laravel\Pages\Crud\FormPage;
 use MoonShine\Contracts\UI\ComponentContract;
 use MoonShine\Contracts\UI\FormBuilderContract;
@@ -15,6 +16,7 @@ use MoonShine\Support\ListOf;
 use MoonShine\UI\Fields\ID;
 use MoonShine\UI\Components\Layout\Box;
 use MoonShine\UI\Fields\Number;
+use MoonShine\UI\Fields\Select;
 use MoonShine\UI\Fields\Text;
 use Throwable;
 
@@ -30,11 +32,18 @@ class OrderFormPage extends FormPage
 
     protected function fields(): iterable
     {
+        $statusOptions = [];
+        foreach (OrderStatus::cases() as $status) {
+            $statusOptions[$status->value] = $status->label();
+        }
+
         return [
             Box::make([
                 ID::make(),
                 Text::make('Номер', 'number')->readonly(),
-                Text::make('Статус', 'status')->required(),
+                Select::make('Статус', 'status')
+                    ->options($statusOptions)
+                    ->required(),
                 Number::make('Итоговая сумма', 'total')->readonly(),
                 Text::make('Метод оплаты', 'payment_method')->readonly(),
                 Text::make('Метод доставки', 'delivery_method')->readonly(),
@@ -54,7 +63,9 @@ class OrderFormPage extends FormPage
 
     protected function rules(DataWrapperContract $item): array
     {
-        return [];
+        return [
+            'status' => ['required', 'string'],
+        ];
     }
 
     /**

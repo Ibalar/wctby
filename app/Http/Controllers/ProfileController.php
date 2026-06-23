@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Services\SocialAccountService;
 use Throwable;
@@ -24,7 +25,7 @@ class ProfileController extends Controller
 
         $lastOrders = $user->orders;
         $totalOrders = $user->orders()->count();
-        $totalSpent = $user->orders()->where('status', 'completed')->sum('total');
+        $totalSpent = $user->orders()->where('status', OrderStatus::Completed->value)->sum('total');
 
         return view('profile.index', compact('user', 'lastOrders', 'totalOrders', 'totalSpent'));
     }
@@ -105,7 +106,7 @@ class ProfileController extends Controller
 
         $orders = $query->paginate(10);
         $totalOrders = $baseQuery->count();
-        $totalSpent = $user->orders()->where('status', 'completed')->sum('total');
+        $totalSpent = $user->orders()->where('status', OrderStatus::Completed->value)->sum('total');
         $statusCounts = $user->orders()
             ->selectRaw('status, COUNT(*) as aggregate')
             ->groupBy('status')
@@ -123,7 +124,7 @@ class ProfileController extends Controller
         $user = Auth::user();
         $order->load('items');
         $totalOrders = $user->orders()->count();
-        $totalSpent = $user->orders()->where('status', 'completed')->sum('total');
+        $totalSpent = $user->orders()->where('status', OrderStatus::Completed->value)->sum('total');
 
         return view('profile.order', compact('order', 'user', 'totalOrders', 'totalSpent'));
     }
@@ -157,7 +158,7 @@ class ProfileController extends Controller
         $providers = $this->socialAccounts->providers();
         $linkedProviders = $user->socialAccounts->pluck('provider')->toArray();
         $totalOrders = $user->orders()->count();
-        $totalSpent = $user->orders()->where('status', 'completed')->sum('total');
+        $totalSpent = $user->orders()->where('status', OrderStatus::Completed->value)->sum('total');
 
         return view('profile.social', compact('user', 'providers', 'providerMeta', 'linkedProviders', 'totalOrders', 'totalSpent'));
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\MoonShine\Resources\Order\Pages;
 
+use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\MoonShine\Resources\Order\OrderResource;
 use MoonShine\Contracts\UI\ComponentContract;
@@ -12,7 +13,6 @@ use MoonShine\Laravel\Pages\Crud\IndexPage;
 use MoonShine\Laravel\QueryTags\QueryTag;
 use MoonShine\Support\ListOf;
 use MoonShine\UI\Components\Metrics\Wrapped\ValueMetric;
-use MoonShine\UI\Fields\Badge;
 use MoonShine\UI\Fields\Date;
 use MoonShine\UI\Fields\DateRange;
 use MoonShine\UI\Fields\ID;
@@ -37,15 +37,12 @@ class OrderIndexPage extends IndexPage
             ID::make(),
             Text::make('Номер', 'number'),
             Text::make('Статус', 'status')
-                ->badge(fn ($value): string => match ($value) {
-                    'new' => 'blue',
-                    'processing' => 'yellow',
-                    'completed' => 'green',
-                    default => 'gray',
-                }),
+                ->badge(fn ($value): string => OrderStatus::tryFrom($value)?->color() ?? 'gray'),
             Text::make('Клиент', 'customer_name'),
             Text::make('Телефон', 'customer_phone'),
             Number::make('Сумма', 'total'),
+            Number::make('Изменений статуса', 'status_history')
+                ->formatted(fn ($value): string => is_array($value) ? (string) count($value) : '0'),
             Date::make('Дата', 'created_at'),
         ];
     }
@@ -60,12 +57,13 @@ class OrderIndexPage extends IndexPage
      */
     protected function filters(): iterable
     {
+        $statusOptions = [];
+        foreach (OrderStatus::cases() as $status) {
+            $statusOptions[$status->value] = $status->label();
+        }
+
         return [
-            Select::make('Статус', 'status')->options([
-                'new' => 'Новый',
-                'processing' => 'В обработке',
-                'completed' => 'Выполнен',
-            ]),
+            Select::make('Статус', 'status')->options($statusOptions),
             DateRange::make('Дата', 'created_at'),
         ];
     }
@@ -75,12 +73,18 @@ class OrderIndexPage extends IndexPage
      */
     protected function queryTags(): array
     {
-        return [
+        $tags = [
             QueryTag::make('Все', fn ($query) => $query),
-            QueryTag::make('Новые', fn ($query) => $query->where('status', 'new')),
-            QueryTag::make('В обработке', fn ($query) => $query->where('status', 'processing')),
-            QueryTag::make('Выполненные', fn ($query) => $query->where('status', 'completed')),
         ];
+
+        foreach (OrderStatus::cases() as $status) {
+            $tags[] = QueryTag::make(
+                $status->label(),
+                fn ($query) => $query->where('status', $status->value),
+            );
+        }
+
+        return $tags;
     }
 
     /**

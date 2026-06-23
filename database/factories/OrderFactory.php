@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -23,7 +24,7 @@ class OrderFactory extends Factory
         return [
             'user_id' => User::factory(),
             'number' => 'ORD-' . now()->format('Ymd') . '-' . str_pad((string) fake()->unique()->numberBetween(1, 999999), 6, '0', STR_PAD_LEFT),
-            'status' => 'new',
+            'status' => OrderStatus::New,
             'currency' => 'BYN',
             'subtotal' => $subtotal,
             'discount_amount' => $discountAmount,
@@ -51,21 +52,21 @@ class OrderFactory extends Factory
     public function completed(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'completed',
+            'status' => OrderStatus::Completed,
         ]);
     }
 
     public function cancelled(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'cancelled',
+            'status' => OrderStatus::Cancelled,
         ]);
     }
 
     public function processing(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'processing',
+            'status' => OrderStatus::Processing,
         ]);
     }
 

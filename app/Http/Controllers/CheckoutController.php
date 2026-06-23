@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\OrderStatus;
 use App\Models\DeliveryMethod;
 use App\Models\Order;
 use App\Models\PaymentMethod;
@@ -94,7 +95,7 @@ class CheckoutController extends Controller
                     $order = Order::create([
                         'user_id' => $request->user()?->id,
                         'number' => $this->generateOrderNumber(),
-                        'status' => 'new',
+                        'status' => OrderStatus::New,
                         'currency' => 'BYN',
                         'subtotal' => $subtotal,
                         'discount_amount' => 0,

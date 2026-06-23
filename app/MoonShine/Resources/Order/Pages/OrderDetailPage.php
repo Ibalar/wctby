@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\MoonShine\Resources\Order\Pages;
 
+use App\Enums\OrderStatus;
 use App\MoonShine\Resources\OrderItem\OrderItemResource;
 use MoonShine\Laravel\Fields\Relationships\HasMany;
 use MoonShine\Laravel\Pages\Crud\DetailPage;
@@ -32,7 +33,8 @@ class OrderDetailPage extends DetailPage
         return [
             ID::make(),
             Text::make('Номер', 'number'),
-            Text::make('Статус', 'status'),
+            Text::make('Статус', 'status')
+                ->badge(fn ($value): string => OrderStatus::tryFrom($value)?->color() ?? 'gray'),
             Number::make('Subtotal', 'subtotal'),
             Number::make('Скидка', 'discount_amount'),
             Number::make('Доставка', 'shipping_amount'),
@@ -41,6 +43,7 @@ class OrderDetailPage extends DetailPage
             Text::make('Телефон', 'customer_phone'),
             Text::make('Email', 'customer_email'),
             Json::make('Адрес доставки', 'shipping_address'),
+            Json::make('История статусов', 'status_history'),
 
             HasMany::make('Позиции заказа', 'items', resource: OrderItemResource::class),
         ];
