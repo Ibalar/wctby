@@ -188,13 +188,31 @@ class ProductParserService
     {
         $images = [];
 
-        // Сначала проверяем <a> с href (Onliner)
+        // 1. Главное изображение — крупный оригинал (Onliner: a.product-gallery__zoom)
         try {
-            $crawler->filter('a[href*=".jpg"], a[href*=".jpeg"], a[href*=".png"], a[href*=".webp"], [class*="gallery"] a, [class*="zoom"] a')->each(
+            $mainLink = $crawler->filter('a[class*="zoom"], a[class*="gallery"], a[href*=".jpg"], a[href*=".jpeg"]')->first();
+            if ($mainLink->count() > 0) {
+                $href = $mainLink->attr('href');
+                // Пробуем заменить размеры на крупные в imgproxy URL
+                $largeHref = preg_replace('/w:\d+/', 'w:700', $href);
+                $largeHref = preg_replace('/h:\d+/', 'h:550', $largeHref);
+                $resolved = $this->resolveImageUrl($largeHref, $sourceUrl);
+                if ($resolved) {
+                    $images[] = $resolved;
+                }
+            }
+        } catch (\Exception) {}
+
+        // 2. Все <a> с изображениями
+        try {
+            $crawler->filter('a[href*=".jpg"], a[href*=".jpeg"], a[href*=".png"]')->each(
                 function ($node) use (&$images, $sourceUrl) {
                     $href = $node->attr('href');
-                    if ($href && preg_match('/\.(jpg|jpeg|png|webp)/i', $href)) {
-                        $resolved = $this->resolveImageUrl($href, $sourceUrl);
+                    if ($href) {
+                        // Заменяем размеры на крупные
+                        $largeHref = preg_replace('/w:\d+/', 'w:700', $href);
+                        $largeHref = preg_replace('/h:\d+/', 'h:550', $largeHref);
+                        $resolved = $this->resolveImageUrl($largeHref, $sourceUrl);
                         if ($resolved && !in_array($resolved, $images)) {
                             $images[] = $resolved;
                         }
@@ -203,58 +221,24 @@ class ProductParserService
             );
         } catch (\Exception) {}
 
-        // <img> теги
-        $selectorGroups = [
-            ['.catalog-masthead__image img', '[class*="gallery"] img'],
-            ['img[class*="main"]', 'img[class*="product"]'],
-        ];
-
-        foreach ($selectorGroups as $group) {
-            foreach ($group as $sel) {
-                try {
-                    $nodes = $crawler->filter($sel);
-                    if ($nodes->count() > 0) {
-                        $nodes->each(function ($node) use (&$images, $sourceUrl) {
-                            $src = $node->attr('src') ?? $node->attr('data-src') ?? $node->attr('data-original');
-                            if ($src) {
-                                $resolved = $this->resolveImageUrl($src, $sourceUrl);
-                                if ($resolved && !in_array($resolved, $images)) {
-                                    $images[] = $resolved;
-                                }
-                            }
-                        });
-                    }
-                } catch (\Exception) {
-                    continue;
-                }
-            }
-        }
-
-        // Fallback: все img
-        if (empty($images)) {
-            try {
-                $crawler->filter('img')->each(function ($node) use (&$images, $sourceUrl) {
+        // 3. <img> теги
+        try {
+            $crawler->filter('img[src*=".jpg"], img[src*=".jpeg"], img[src*=".png"]')->each(
+                function ($node) use (&$images, $sourceUrl) {
                     $src = $node->attr('src') ?? $node->attr('data-src');
                     if ($src) {
-                        $resolved = $this->resolveImageUrl($src, $sourceUrl);
-                        if ($resolved && !in_array($resolved, $images) && preg_match('/\.(jpg|jpeg|png|webp)/i', $resolved)) {
+                        $largeSrc = preg_replace('/w:\d+/', 'w:700', $src);
+                        $largeSrc = preg_replace('/h:\d+/', 'h:550', $largeSrc);
+                        $resolved = $this->resolveImageUrl($largeSrc, $sourceUrl);
+                        if ($resolved && !in_array($resolved, $images)) {
                             $images[] = $resolved;
                         }
                     }
-                });
-            } catch (\Exception) {}
-        }
+                }
+            );
+        } catch (\Exception) {}
 
-        Log::info('[ProductParser] Images found', ['count' => count($images), 'urls' => $images]);
-
-        // Сортируем: крупные изображения вперёд (по w: в URL imgproxy)
-        usort($images, function ($a, $b) {
-            preg_match('/w:(\d+)/', $a, $ma);
-            preg_match('/w:(\d+)/', $b, $mb);
-            $wa = isset($ma[1]) ? (int) $ma[1] : 0;
-            $wb = isset($mb[1]) ? (int) $mb[1] : 0;
-            return $wb <=> $wa;
-        });
+        Log::info('[ProductParser] Images found', ['count' => count($images)]);
 
         return array_slice($images, 0, 5);
     }
@@ -263,93 +247,66 @@ class ProductParserService
     {
         $specs = [];
 
-        // Подход 1: <dl>/<dt>/<dd> — Onliner и многие используют этот формат
-        try {
-            $dts = $crawler->filter('dl dt, [class*="spec"] dt, [class*="char"] dt');
-            if ($dts->count() > 0) {
-                $dts->each(function ($dt) use (&$specs) {
-                    try {
-                        $key = trim($dt->text());
-                        $key = rtrim($key, ":\s");
-
-                        // Ищем следующий dd после этого dt
-                        $dd = $dt->nextAll()->filter('dd')->first();
-                        if ($dd->count() === 0) {
-                            $dd = $dt->parents()->first()->nextAll()->filter('dd')->first();
-                        }
-                        $value = $dd->count() > 0 ? trim($dd->text()) : '';
-
-                        if (!empty($key) && !empty($value) && mb_strlen($key) < 100) {
-                            $specs[$key] = $value;
-                        }
-                    } catch (\Exception) {}
-                });
-
-                if (count($specs) >= 2) return $specs;
-            }
-        } catch (\Exception) {}
-
-        // Подход 2: table с th/td или td/td
-        $tableSelectors = [
-            'table tr', 'table[class*="spec"] tr', 'table[class*="char"] tr',
-            '[class*="spec"] table tr', '.product-specs tr', '.offers-description tr',
+        // Onliner: спецификации в <dl> внутри класса offers-description
+        $dlSelectors = [
+            'dl', 'dl[class*="spec"]', 'dl[class*="offers"]',
+            '[class*="offers"] dl', '[class*="spec"] dl', '[class*="detail"] dl',
         ];
-        foreach ($tableSelectors as $sel) {
+
+        foreach ($dlSelectors as $dlSel) {
             try {
-                $rows = $crawler->filter($sel);
-                if ($rows->count() === 0) continue;
+                $dts = $crawler->filter("{$dlSel} dt");
+                if ($dts->count() > 0) {
+                    $dts->each(function ($dt) use (&$specs) {
+                        try {
+                            $key = trim(strip_tags($dt->html()));
+                            $key = rtrim($key, ":\s");
 
-                $specs = []; // Reset for this selector
-                $rows->each(function ($row) use (&$specs) {
-                    try {
-                        $th = $row->filter('th');
-                        $td = $row->filter('td');
+                            $dd = $dt->nextAll()->filter('dd')->first();
+                            if ($dd->count() === 0) {
+                                $dd = $dt->closest('dl')->filter('dd')->eq(
+                                    $dt->closest('dl')->filter('dt')->previousAll()->count()
+                                );
+                            }
+                            $value = $dd->count() > 0 ? trim(strip_tags($dd->html())) : '';
 
-                        if ($th->count() >= 1 && $td->count() >= 1) {
-                            $key = trim($th->first()->text());
-                            $value = trim($td->first()->text());
-                        } elseif ($td->count() >= 2) {
-                            $key = trim($td->eq(0)->text());
-                            $value = trim($td->eq(1)->text());
-                        } else {
-                            return;
-                        }
+                            if (!empty($key) && mb_strlen($key) < 100) {
+                                $specs[$key] = $value;
+                            }
+                        } catch (\Exception) {}
+                    });
 
-                        $key = rtrim($key, ":\s");
-                        if (!empty($key) && !empty($value) && mb_strlen($key) < 100) {
-                            $specs[$key] = $value;
-                        }
-                    } catch (\Exception) {}
-                });
-
-                if (count($specs) >= 2) return $specs;
-            } catch (\Exception) {
-                continue;
-            }
+                    Log::info('[ProductParser] Specs from dl', ['selector' => $dlSel, 'count' => count($specs)]);
+                    if (count($specs) >= 2) return $specs;
+                }
+            } catch (\Exception) {}
         }
 
-        // Подход 3: div-структура (ключ: span.label, значение: span.value)
+        // Table структура
         try {
-            $rows = $crawler->filter('[class*="spec"] div, [class*="char"] div, [class*="prop"] div');
-            if ($rows->count() > 0) {
-                $specs = [];
-                $rows->each(function ($row) use (&$specs) {
-                    try {
-                        $label = $row->filter('[class*="label"], [class*="name"], [class*="title"], span:first-child');
-                        $value = $row->filter('[class*="value"], [class*="text"], span:last-child');
-                        if ($label->count() > 0 && $value->count() > 0) {
-                            $key = trim($label->first()->text());
-                            $key = rtrim($key, ":\s");
-                            $val = trim($value->first()->text());
-                            if (!empty($key) && !empty($val) && mb_strlen($key) < 100) {
-                                $specs[$key] = $val;
-                            }
-                        }
-                    } catch (\Exception) {}
-                });
-                if (count($specs) >= 2) return $specs;
-            }
+            $rows = $crawler->filter('table tr');
+            $rows->each(function ($row) use (&$specs) {
+                try {
+                    $th = $row->filter('th');
+                    $td = $row->filter('td');
+                    if ($th->count() >= 1 && $td->count() >= 1) {
+                        $key = trim(strip_tags($th->first()->html()));
+                        $value = trim(strip_tags($td->first()->html()));
+                        $key = rtrim($key, ":\s");
+                        if (!empty($key) && mb_strlen($key) < 100) $specs[$key] = $value;
+                    } elseif ($td->count() >= 2) {
+                        $key = trim(strip_tags($td->eq(0)->html()));
+                        $value = trim(strip_tags($td->eq(1)->html()));
+                        $key = rtrim($key, ":\s");
+                        if (!empty($key) && mb_strlen($key) < 100) $specs[$key] = $value;
+                    }
+                } catch (\Exception) {}
+            });
+            Log::info('[ProductParser] Specs from table', ['count' => count($specs)]);
+            if (count($specs) >= 2) return $specs;
         } catch (\Exception) {}
+
+        Log::info('[ProductParser] Specs result', ['count' => count($specs), 'sample' => array_slice($specs, 0, 3)]);
 
         return $specs;
     }
