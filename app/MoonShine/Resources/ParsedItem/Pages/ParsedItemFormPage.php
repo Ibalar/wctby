@@ -34,7 +34,6 @@ class ParsedItemFormPage extends FormPage
                     ->placeholder('Автоопределение'),
                 Text::make('Один URL', 'source_url'),
                 Textarea::make('Несколько URL (по одному на строку)', 'urls')
-                    ->rows(5)
                     ->placeholder("https://site.by/product/1\nhttps://site.by/product/2"),
             ]),
         ];
