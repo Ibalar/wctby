@@ -12,7 +12,6 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SocialAuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AddressController;
-use App\Http\Controllers\CartController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
