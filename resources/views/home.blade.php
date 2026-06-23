@@ -12,7 +12,6 @@
     <!-- Features -->
     <section class="container pt-5 mt-1 mt-sm-3 mt-lg-4">
         <div class="row row-cols-2 row-cols-md-4 g-4">
-            <!-- Item -->
             <div class="col">
                 <div class="d-flex flex-column flex-xxl-row align-items-center">
                     <div class="d-flex text-dark-emphasis bg-body-tertiary rounded-circle p-4 mb-3 mb-xxl-0">
@@ -24,8 +23,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Item -->
             <div class="col">
                 <div class="d-flex flex-column flex-xxl-row align-items-center">
                     <div class="d-flex text-dark-emphasis bg-body-tertiary rounded-circle p-4 mb-3 mb-xxl-0">
@@ -37,8 +34,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Item -->
             <div class="col">
                 <div class="d-flex flex-column flex-xxl-row align-items-center">
                     <div class="d-flex text-dark-emphasis bg-body-tertiary rounded-circle p-4 mb-3 mb-xxl-0">
@@ -50,8 +45,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Item -->
             <div class="col">
                 <div class="d-flex flex-column flex-xxl-row align-items-center">
                     <div class="d-flex text-dark-emphasis bg-body-tertiary rounded-circle p-4 mb-3 mb-xxl-0">
@@ -66,60 +59,61 @@
         </div>
     </section>
 
-    <!-- Popular categories -->
+    <!-- Categories -->
+    @if($categories->isNotEmpty())
     <section class="container pt-5 mt-1 mt-sm-2 mt-md-3 mt-lg-4">
-        <h2 class="h3 pb-2 pb-sm-3">Популярные категории</h2>
+        <div class="d-flex align-items-center justify-content-between pb-2 pb-sm-3">
+            <h2 class="h3 mb-0">Категории товаров</h2>
+            <a href="{{ route('catalog.index') }}" class="nav-link px-0">Все категории →</a>
+        </div>
         <div class="row row-cols-2 row-cols-md-3 row-cols-lg-6 g-3">
-            <div class="col">
-                <a href="#" class="card h-100 text-decoration-none">
-                    <div class="card-body text-center">
-                        <i class="ci-smartphone fs-1 text-primary mb-3"></i>
-                        <h5 class="card-title h6">Смартфоны</h5>
-                    </div>
-                </a>
-            </div>
-            <div class="col">
-                <a href="#" class="card h-100 text-decoration-none">
-                    <div class="card-body text-center">
-                        <i class="ci-laptop fs-1 text-primary mb-3"></i>
-                        <h5 class="card-title h6">Ноутбуки</h5>
-                    </div>
-                </a>
-            </div>
-            <div class="col">
-                <a href="#" class="card h-100 text-decoration-none">
-                    <div class="card-body text-center">
-                        <i class="ci-headphones fs-1 text-primary mb-3"></i>
-                        <h5 class="card-title h6">Наушники</h5>
-                    </div>
-                </a>
-            </div>
-            <div class="col">
-                <a href="#" class="card h-100 text-decoration-none">
-                    <div class="card-body text-center">
-                        <i class="ci-watch fs-1 text-primary mb-3"></i>
-                        <h5 class="card-title h6">Умные часы</h5>
-                    </div>
-                </a>
-            </div>
-            <div class="col">
-                <a href="#" class="card h-100 text-decoration-none">
-                    <div class="card-body text-center">
-                        <i class="ci-tablet fs-1 text-primary mb-3"></i>
-                        <h5 class="card-title h6">Планшеты</h5>
-                    </div>
-                </a>
-            </div>
-            <div class="col">
-                <a href="#" class="card h-100 text-decoration-none">
-                    <div class="card-body text-center">
-                        <i class="ci-monitor fs-1 text-primary mb-3"></i>
-                        <h5 class="card-title h6">Мониторы</h5>
-                    </div>
-                </a>
-            </div>
+            @foreach($categories as $category)
+                <div class="col">
+                    <a href="{{ route('catalog.category', $category->slug) }}" class="card h-100 text-decoration-none">
+                        <div class="card-body text-center">
+                            @if($category->getFirstMediaUrl('images'))
+                                <img src="{{ $category->getFirstMediaUrl('images') }}" class="mb-3" width="48" alt="{{ $category->name }}">
+                            @else
+                                <i class="ci-folder fs-1 text-primary mb-3"></i>
+                            @endif
+                            <h5 class="card-title h6 mb-0">{{ $category->name }}</h5>
+                        </div>
+                    </a>
+                </div>
+            @endforeach
         </div>
     </section>
+    @endif
+
+    <!-- Featured Products -->
+    @if($featuredProducts->isNotEmpty())
+    <section class="container pt-5 mt-1 mt-sm-2 mt-md-3 mt-lg-4">
+        <div class="d-flex align-items-center justify-content-between pb-2 pb-sm-3">
+            <h2 class="h3 mb-0">Рекомендуемые товары</h2>
+            <a href="{{ route('catalog.index') }}" class="nav-link px-0">Все товары →</a>
+        </div>
+        <div class="row row-cols-2 row-cols-md-3 row-cols-xl-4 g-4">
+            @foreach($featuredProducts as $product)
+                <x-product-card :product="$product" />
+            @endforeach
+        </div>
+    </section>
+    @endif
+
+    <!-- New Products -->
+    @if($newProducts->isNotEmpty())
+    <section class="container pt-5 mt-1 mt-sm-2 mt-md-3 mt-lg-4">
+        <div class="d-flex align-items-center justify-content-between pb-2 pb-sm-3">
+            <h2 class="h3 mb-0">Новые поступления</h2>
+            <a href="{{ route('catalog.index') }}" class="nav-link px-0">Все новинки →</a>
+        </div>
+        <div class="row row-cols-2 row-cols-md-3 row-cols-xl-4 g-4">
+            @foreach($newProducts as $product)
+                <x-product-card :product="$product" />
+            @endforeach
+        </div>
+    </section>
+    @endif
 
     <!-- Newsletter -->
     <section class="bg-body-tertiary py-5 mt-5">
