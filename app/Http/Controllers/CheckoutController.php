@@ -3,15 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Enums\OrderStatus;
+use App\Events\OrderCreated;
 use App\Models\DeliveryMethod;
 use App\Models\Order;
 use App\Models\PaymentMethod;
-use App\Notifications\NewOrderAdminNotification;
-use App\Notifications\OrderConfirmationNotification;
 use App\Services\CartService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Log;
 
 class CheckoutController extends Controller
 {
@@ -153,9 +152,11 @@ class CheckoutController extends Controller
             }
         }
 
-        $this->cartService->clear($cart);
+        event(new OrderCreated($order, $cart));
 
-        $this->sendOrderNotifications($order);
+        Log::info('[CheckoutController] OrderCreated dispatched', [
+            'order_id' => $order->id,
+        ]);
 
         return redirect()->route('checkout.success', ['orderNumber' => $order->number]);
     }
@@ -181,23 +182,5 @@ class CheckoutController extends Controller
         $code = $e->errorInfo[0] ?? null;
 
         return in_array($code, ['23000', '23505', '19'], true);
-    }
-
-    protected function sendOrderNotifications(Order $order): void
-    {
-        $order->load('items');
-
-        if ($order->user_id && $order->user) {
-            $order->user->notify(new OrderConfirmationNotification($order));
-        } elseif ($order->customer_email) {
-            Notification::route('mail', $order->customer_email)
-                ->notify(new OrderConfirmationNotification($order));
-        }
-
-        $adminEmail = config('mail.admin_email');
-        if ($adminEmail) {
-            Notification::route('mail', $adminEmail)
-                ->notify(new NewOrderAdminNotification($order));
-        }
     }
 }

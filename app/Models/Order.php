@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\OrderStatus;
+use App\Events\OrderStatusChanged;
 use DomainException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -75,6 +76,8 @@ class Order extends Model
 
         $this->recordStatusChange($newStatus, $userId);
         $this->status = $newStatus;
+
+        event(new OrderStatusChanged($this, $oldStatus, $newStatus));
 
         Log::info('[Order.transition] Status changed', [
             'order_id' => $this->id,
