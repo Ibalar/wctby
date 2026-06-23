@@ -150,7 +150,6 @@ class ProductParserService
         $slug = Str::slug($name);
         $price = !empty($data['price']) ? (float) $data['price'] : 0;
 
-        // Ensure unique slug
         $originalSlug = $slug;
         $counter = 1;
         while (Product::where('slug', $slug)->exists()) {
@@ -161,19 +160,57 @@ class ProductParserService
             'name' => $name,
             'slug' => $slug,
             'sku' => 'parsed-' . Str::random(8),
-            'base_price' => $price,
+            'base_price' => $price > 0 ? $price : 0,
             'description' => $data['description'] ?? null,
             'is_active' => false,
         ]);
 
         if (!empty($data['image'])) {
-            try {
-                $product->addMediaFromUrl($data['image'])->toMediaCollection('images');
-            } catch (\Exception $e) {
-                Log::warning('[ProductParser] Image download failed', ['url' => $data['image'], 'error' => $e->getMessage()]);
+            $imageUrl = $this->resolveImageUrl($data['image'], $data['source_url'] ?? '');
+
+            if ($imageUrl) {
+                try {
+                    $product
+                        ->addMediaFromUrl($imageUrl)
+                        ->toMediaCollection('images');
+
+                    Log::info('[ProductParser] Image downloaded', ['url' => $imageUrl]);
+                } catch (\Exception $e) {
+                    Log::warning('[ProductParser] Image download failed', [
+                        'url' => $imageUrl,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
             }
         }
 
         return $product;
+    }
+
+    protected function resolveImageUrl(string $src, string $sourceUrl): ?string
+    {
+        if (empty($src)) {
+            return null;
+        }
+
+        // Already absolute
+        if (preg_match('#^https?://#', $src)) {
+            return $src;
+        }
+
+        // Protocol-relative
+        if (str_starts_with($src, '//')) {
+            return 'https:' . $src;
+        }
+
+        // Relative — resolve against source URL
+        $base = parse_url($sourceUrl);
+        if (!$base || empty($base['scheme']) || empty($base['host'])) {
+            return null;
+        }
+
+        $path = str_starts_with($src, '/') ? $src : '/' . $src;
+
+        return $base['scheme'] . '://' . $base['host'] . $path;
     }
 }
