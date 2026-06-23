@@ -34,7 +34,7 @@ class ReviewIndexPage extends IndexPage
                     1 => 'red',
                     default => 'gray',
                 }),
-            Text::make('Отзыв', 'body')->formatted(fn ($value): string => mb_substr(strip_tags($value), 0, 100) . (mb_strlen(strip_tags($value)) > 100 ? '...' : '')),
+            Text::make('Отзыв', 'body', fn ($item) => mb_substr(strip_tags($item->body), 0, 100) . (mb_strlen(strip_tags($item->body)) > 100 ? '...' : '')),
             Switcher::make('Одобрен', 'is_approved')->badge(),
             Date::make('Дата', 'created_at')->sortable(),
         ];
