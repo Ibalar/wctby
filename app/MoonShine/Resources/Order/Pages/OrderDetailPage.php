@@ -33,9 +33,8 @@ class OrderDetailPage extends DetailPage
         return [
             ID::make(),
             Text::make('Номер', 'number'),
-            Text::make('Статус', 'status')
-                ->badge(fn ($value): string => OrderStatus::tryFrom($value)?->color() ?? 'gray'),
-            Number::make('Subtotal', 'subtotal'),
+            Text::make('Статус', 'status', fn ($item) => $item->status->label())
+                ->badge(fn ($value): string => ($value instanceof OrderStatus ? $value : OrderStatus::tryFrom($value))?->color() ?? 'gray'),            Number::make('Subtotal', 'subtotal'),
             Number::make('Скидка', 'discount_amount'),
             Number::make('Доставка', 'shipping_amount'),
             Number::make('Итого', 'total'),

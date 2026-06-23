@@ -41,7 +41,7 @@ class OrderFormPage extends FormPage
             Box::make([
                 ID::make(),
                 Text::make('Номер', 'number')->readonly(),
-                Select::make('Статус', 'status')
+                Select::make('Статус', 'status', fn ($item) => $item->status->label())
                     ->options($statusOptions)
                     ->required(),
                 Number::make('Итоговая сумма', 'total')->readonly(),

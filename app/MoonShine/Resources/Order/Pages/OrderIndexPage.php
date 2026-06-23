@@ -36,9 +36,8 @@ class OrderIndexPage extends IndexPage
         return [
             ID::make(),
             Text::make('Номер', 'number'),
-            Text::make('Статус', 'status')
-                ->badge(fn ($value): string => OrderStatus::tryFrom($value)?->color() ?? 'gray'),
-            Text::make('Клиент', 'customer_name'),
+            Text::make('Статус', 'status', fn ($item) => $item->status->label())
+                ->badge(fn ($value): string => ($value instanceof OrderStatus ? $value : OrderStatus::tryFrom($value))?->color() ?? 'gray'),            Text::make('Клиент', 'customer_name'),
             Text::make('Телефон', 'customer_phone'),
             Number::make('Сумма', 'total'),
             Date::make('Дата', 'created_at'),
