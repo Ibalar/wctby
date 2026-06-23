@@ -292,17 +292,17 @@
 @push('json_ld')
 <script type="application/ld+json">
 {
-    "@context": "https://schema.org",
-    "@type": "Product",
+    "@@context": "https://schema.org",
+    "@@type": "Product",
     "name": "{{ $product->name }}",
     "description": "{{ Str::limit(strip_tags($product->description ?? $product->name), 200) }}",
     "sku": "{{ $product->sku }}",
     "image": "{{ $product->getFirstMediaUrl('images') }}",
-    @if($product->category)
+@if($product->category)
     "category": "{{ $product->category->name }}",
-    @endif
+@endif
     "offers": {
-        "@type": "Offer",
+        "@@type": "Offer",
         "priceCurrency": "BYN",
         "price": "{{ $product->base_price }}",
         "availability": "{{ $product->is_active ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock' }}",
