@@ -85,8 +85,12 @@ return [
     ],
     'default_selectors' => [
         'name' => ['h1'],
+        'sku' => ['[itemprop="sku"]', '.sku'],
         'price' => ['.price', '[class*="price"]'],
+        'short_description' => ['.short-description', '[itemprop="description"]'],
         'description' => ['.description', '[class*="description"]'],
         'image' => ['img::attr(src)'],
+        'meta_title' => ['title'],
+        'meta_description' => ['meta[name="description"]::attr(content)'],
     ],
 ];

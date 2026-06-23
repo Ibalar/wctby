@@ -10,6 +10,7 @@ use MoonShine\Contracts\UI\ComponentContract;
 use MoonShine\Contracts\UI\FieldContract;
 use MoonShine\Laravel\Pages\Crud\FormPage;
 use MoonShine\UI\Components\Layout\Box;
+use MoonShine\UI\Components\Layout\Flex;
 use MoonShine\UI\Fields\ID;
 use MoonShine\UI\Fields\Json;
 use MoonShine\UI\Fields\Switcher;
@@ -31,14 +32,24 @@ class ParserSiteFormPage extends FormPage
                     ->keyValue('Домен', 'Значение'),
                 Switcher::make('Активна', 'is_active')->default(true),
             ]),
-            Box::make('Селекторы', [
-                Json::make('Название (name)', 'selectors->name')
+            Box::make('Селекторы товара', [
+                Json::make('Название (name) *', 'selectors->name')
+                    ->keyValue('Приоритет', 'Селектор'),
+                Json::make('Артикул (sku)', 'selectors->sku')
                     ->keyValue('Приоритет', 'Селектор'),
                 Json::make('Цена (price)', 'selectors->price')
                     ->keyValue('Приоритет', 'Селектор'),
-                Json::make('Описание (description)', 'selectors->description')
+                Json::make('Краткое описание (short_description)', 'selectors->short_description')
                     ->keyValue('Приоритет', 'Селектор'),
-                Json::make('Изображение (image)', 'selectors->image')
+                Json::make('Полное описание (description)', 'selectors->description')
+                    ->keyValue('Приоритет', 'Селектор'),
+                Json::make('Изображения (image)', 'selectors->image')
+                    ->keyValue('Приоритет', 'Селектор'),
+                Json::make('Meta Title', 'selectors->meta_title')
+                    ->keyValue('Приоритет', 'Селектор'),
+                Json::make('Meta Description', 'selectors->meta_description')
+                    ->keyValue('Приоритет', 'Селектор'),
+                Json::make('Meta Keywords', 'selectors->meta_keywords')
                     ->keyValue('Приоритет', 'Селектор'),
             ]),
         ];

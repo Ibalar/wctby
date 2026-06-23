@@ -375,8 +375,15 @@ class ProductParserService
 
         $product->name = $name;
         $product->base_price = $price > 0 ? $price : ($product->base_price ?? 0);
-        $product->short_description = $data['description'] ?? $product->short_description;
         $product->is_active = $product->is_active ?? false;
+
+        // Все поля из селекторов
+        if (!empty($data['sku'])) $product->sku = $data['sku'];
+        if (!empty($data['short_description'])) $product->short_description = $data['short_description'];
+        if (!empty($data['description'])) $product->description = $data['description'];
+        if (!empty($data['meta_title'])) $product->meta_title = $data['meta_title'];
+        if (!empty($data['meta_description'])) $product->meta_description = $data['meta_description'];
+        if (!empty($data['meta_keywords'])) $product->meta_keywords = $data['meta_keywords'];
 
         if (!empty($data['properties'])) {
             $existing = $product->properties ?? [];
@@ -394,7 +401,7 @@ class ProductParserService
                 $slug = $originalSlug . '-' . $counter++;
             }
             $product->slug = $slug;
-            $product->sku = 'parsed-' . Str::random(8);
+            if (empty($product->sku)) $product->sku = 'parsed-' . Str::random(8);
         }
     }
 
