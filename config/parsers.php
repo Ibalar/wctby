@@ -26,8 +26,6 @@ return [
                     '[class*="gallery"] img::attr(src)',
                     'img[class*="main"]::attr(src)',
                 ],
-                'specs' => 'table[class*="spec"] tr, .product-specs tr, .catalog-detail__specs tr',
-                'specs_alt' => '.offers-description__specs tr, [class*="spec"] tr',
             ],
         ],
         '21vek' => [
@@ -82,7 +80,6 @@ return [
                     '[class*="gallery"] img::attr(src)',
                     'img::attr(src)',
                 ],
-                'specs' => 'table tr, [class*="spec"] tr, [class*="char"] tr',
             ],
         ],
     ],
@@ -91,6 +88,5 @@ return [
         'price' => ['.price', '[class*="price"]'],
         'description' => ['.description', '[class*="description"]'],
         'image' => ['img::attr(src)'],
-        'specs' => 'table tr, [class*="spec"] tr',
     ],
 ];
