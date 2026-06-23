@@ -247,6 +247,15 @@ class ProductParserService
 
         Log::info('[ProductParser] Images found', ['count' => count($images), 'urls' => $images]);
 
+        // Сортируем: крупные изображения вперёд (по w: в URL imgproxy)
+        usort($images, function ($a, $b) {
+            preg_match('/w:(\d+)/', $a, $ma);
+            preg_match('/w:(\d+)/', $b, $mb);
+            $wa = isset($ma[1]) ? (int) $ma[1] : 0;
+            $wb = isset($mb[1]) ? (int) $mb[1] : 0;
+            return $wb <=> $wa;
+        });
+
         return array_slice($images, 0, 5);
     }
 
