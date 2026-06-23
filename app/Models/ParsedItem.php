@@ -18,30 +18,39 @@ class ParsedItem extends Model
     protected static function booted(): void
     {
         static::saving(function (ParsedItem $item) {
-            // Одиночный URL
             if (!empty($item->source_url) && empty($item->status)) {
                 $item->status = 'pending';
             }
-        });
 
-        static::created(function (ParsedItem $item) {
-            // Обработка нескольких URL из поля urls (только при создании)
-            if (request()->has('urls') && !empty(request('urls'))) {
+            // Обработка нескольких URL из виртуального поля urls (до сохранения)
+            if (request()->has('urls') && !empty(trim(request('urls', '')))) {
                 $urls = array_filter(array_map('trim', explode("\n", request('urls'))));
                 $siteCode = request('site_code');
+                $added = 0;
 
                 foreach ($urls as $url) {
-                    if (filter_var($url, FILTER_VALIDATE_URL) && $url !== $item->source_url) {
+                    if (filter_var($url, FILTER_VALIDATE_URL) && $url !== ($item->source_url ?? '')) {
                         static::create([
                             'source_url' => $url,
                             'site_code' => $siteCode ?: null,
                             'status' => 'pending',
                         ]);
+                        $added++;
                     }
                 }
 
-                Log::info('[ParsedItem] Batch URLs created', ['count' => count($urls)]);
+                if ($added > 0) {
+                    Log::info('[ParsedItem] Batch URLs created', ['count' => $added]);
+
+                    // Если это был только batch без одиночного URL, отменяем сохранение текущей модели
+                    if (empty($item->source_url)) {
+                        return false;
+                    }
+                }
             }
+
+            // urls — виртуальное поле, не сохраняем в БД
+            unset($item->attributes['urls']);
         });
     }
 
