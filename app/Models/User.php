@@ -92,6 +92,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Wishlist::class);
     }
 
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
     public function getFullNameAttribute(): string
     {
         $parts = array_filter([

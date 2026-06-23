@@ -189,6 +189,79 @@
         </div>
     </section>
 
+    <!-- Reviews Section -->
+    @php
+        $reviews = $product->reviews()->approved()->with('user')->latest()->get();
+    @endphp
+    <section class="container pb-5 mb-2 mb-md-3">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h2 class="h3 mb-0">
+                Отзывы
+                @if($product->reviews_count > 0)
+                    <span class="fs-base fw-normal text-body-tertiary ms-2">
+                        ({{ $product->reviews_count }})
+                        ★ {{ number_format($product->average_rating, 1) }}
+                    </span>
+                @endif
+            </h2>
+        </div>
+
+        @auth
+            <div class="card border mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Оставить отзыв</h5>
+                    <form data-review-form>
+                        <input type="hidden" name="product_id" value="{{ $product->id }}">
+                        <div class="mb-3">
+                            <label class="form-label">Оценка</label>
+                            <div class="d-flex gap-1" data-review-stars>
+                                @for ($i = 1; $i <= 5; $i++)
+                                    <button type="button" class="btn btn-icon btn-outline-warning btn-sm" data-rating="{{ $i }}" title="{{ $i }}">
+                                        <i class="ci-star fs-base"></i>
+                                    </button>
+                                @endfor
+                            </div>
+                            <input type="hidden" name="rating" data-review-rating value="5">
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" name="title" placeholder="Заголовок (необязательно)" maxlength="255">
+                        </div>
+                        <div class="mb-3">
+                            <textarea class="form-control" name="body" rows="3" placeholder="Ваш отзыв" required maxlength="5000"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Отправить</button>
+                    </form>
+                </div>
+            </div>
+        @else
+            <div class="alert alert-light text-center mb-4">
+                <a href="{{ route('login') }}" class="fw-medium">Войдите</a>, чтобы оставить отзыв.
+            </div>
+        @endauth
+
+        @if($reviews->isEmpty())
+            <p class="text-body-tertiary">Пока нет отзывов. Будьте первым!</p>
+        @else
+            @foreach($reviews as $review)
+                <div class="border rounded-4 p-4 mb-3">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="fw-medium me-2">{{ $review->user?->display_name ?? 'Пользователь' }}</span>
+                        <span class="text-warning">
+                            @for ($i = 1; $i <= 5; $i++)
+                                <i class="ci-star{{ $i <= $review->rating ? '-filled' : '' }} fs-sm"></i>
+                            @endfor
+                        </span>
+                        <span class="text-body-tertiary ms-auto fs-sm">{{ $review->created_at->format('d.m.Y') }}</span>
+                    </div>
+                    @if($review->title)
+                        <h6 class="mb-1">{{ $review->title }}</h6>
+                    @endif
+                    <p class="mb-0">{{ $review->body }}</p>
+                </div>
+            @endforeach
+        @endif
+    </section>
+
     @if($relatedProducts->isNotEmpty())
         <section class="container pb-5 mb-2 mb-md-3 mb-lg-4 mb-xl-5">
             <div class="d-flex align-items-center justify-content-between mb-4">
@@ -251,6 +324,65 @@
 
             skuSelect.addEventListener('change', syncPrice);
             syncPrice();
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.querySelector('[data-review-form]');
+            if (!form) return;
+
+            const stars = document.querySelectorAll('[data-review-stars] button');
+            const ratingInput = document.querySelector('[data-review-rating]');
+
+            stars.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const rating = btn.dataset.rating;
+                    ratingInput.value = rating;
+                    stars.forEach((b, i) => {
+                        b.classList.toggle('btn-outline-warning', i >= rating);
+                        b.classList.toggle('btn-warning', i < rating);
+                    });
+                });
+            });
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const btn = form.querySelector('button[type="submit"]');
+                btn.disabled = true;
+                btn.textContent = 'Отправка...';
+
+                try {
+                    const res = await fetch('{{ route('reviews.store') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        },
+                        body: JSON.stringify({
+                            product_id: form.querySelector('[name="product_id"]').value,
+                            rating: ratingInput.value,
+                            title: form.querySelector('[name="title"]').value,
+                            body: form.querySelector('[name="body"]').value,
+                        }),
+                    });
+
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        showFlashToast(data.message);
+                        window.location.reload();
+                    } else {
+                        showFlashToast(data.message || 'Ошибка при отправке отзыва');
+                    }
+                } catch {
+                    showFlashToast('Ошибка соединения');
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = 'Отправить';
+                }
+            });
         });
     </script>
 @endpush

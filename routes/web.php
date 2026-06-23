@@ -4,6 +4,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SocialAuthController;
 use App\Http\Controllers\ProfileController;
@@ -48,6 +49,11 @@ Route::middleware('throttle:60,1')->prefix('wishlist')->name('wishlist.')->group
     Route::post('/toggle', [WishlistController::class, 'toggle'])->name('toggle');
     Route::delete('/{wishlist}', [WishlistController::class, 'remove'])->name('remove');
     Route::get('/count', [WishlistController::class, 'count'])->name('count');
+});
+
+// Отзывы
+Route::middleware(['auth', 'throttle:10,1'])->prefix('reviews')->name('reviews.')->group(function () {
+    Route::post('/', [ReviewController::class, 'store'])->name('store');
 });
 
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');

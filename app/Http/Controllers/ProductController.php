@@ -18,6 +18,7 @@ class ProductController extends Controller
                 'media',
                 'skus.attributeOptions.attribute',
                 'attributeOptions.attribute',
+                'reviews' => fn ($q) => $q->approved()->latest(),
             ])
             ->where('slug', $slug)
             ->where('is_active', true)

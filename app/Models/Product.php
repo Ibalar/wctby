@@ -55,6 +55,21 @@ class Product extends Model implements HasMedia
         return $this->hasMany(ProductAttributeOption::class);
     }
 
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function getAverageRatingAttribute(): ?float
+    {
+        return $this->reviews()->approved()->avg('rating');
+    }
+
+    public function getReviewsCountAttribute(): int
+    {
+        return $this->reviews()->approved()->count();
+    }
+
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('images')

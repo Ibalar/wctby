@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\MoonShine\Resources\SocialAccount\SocialAccountResource;
+use App\MoonShine\Resources\Review\ReviewResource;
 use App\MoonShine\Resources\Wishlist\WishlistResource;
 use Illuminate\Support\ServiceProvider;
 use MoonShine\Contracts\Core\DependencyInjection\CoreContract;
@@ -57,6 +58,7 @@ class MoonShineServiceProvider extends ServiceProvider
                 PaymentMethodResource::class,
                 DeliveryMethodResource::class,
                 WishlistResource::class,
+                ReviewResource::class,
                 PageResource::class,
             ])
             ->pages([
