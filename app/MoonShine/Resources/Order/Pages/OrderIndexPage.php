@@ -41,8 +41,6 @@ class OrderIndexPage extends IndexPage
             Text::make('Клиент', 'customer_name'),
             Text::make('Телефон', 'customer_phone'),
             Number::make('Сумма', 'total'),
-            Number::make('Изменений статуса', 'status_history')
-                ->formatted(fn ($value): string => is_array($value) ? (string) count($value) : '0'),
             Date::make('Дата', 'created_at'),
         ];
     }
