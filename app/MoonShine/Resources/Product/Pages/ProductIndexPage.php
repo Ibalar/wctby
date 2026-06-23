@@ -93,7 +93,7 @@ class ProductIndexPage extends IndexPage
         return [
             ActionButton::make('Экспорт CSV', route('admin.products.export'))
                 ->primary(),
-            ActionButton::make('Импорт CSV', route('moonshine.import.page'))
+            ActionButton::make('Импорт CSV', url('/admin/import'))
                 ->secondary(),
             ...parent::topLayer()
         ];

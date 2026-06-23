@@ -58,7 +58,7 @@ class ImportProductsPage extends Page
     {
         return [
             Box::make([
-                FormBuilder::make(route('moonshine.import.upload'))
+                FormBuilder::make(url('/admin/import/upload'))
                     ->fields([
                         File::make('CSV-файл', 'csv_file')
                             ->required()
@@ -101,7 +101,7 @@ class ImportProductsPage extends Page
 
         $components = [
             Box::make([
-                FormBuilder::make(route('moonshine.import.run'))
+                FormBuilder::make(url('/admin/import/run'))
                     ->fields([
                         Hidden::make('file', 'file')->setValue($filePath),
                         ...$mappingFields,
@@ -120,7 +120,7 @@ class ImportProductsPage extends Page
             Box::make([
                 "Импорт завершён: {$result['created']} создано, {$result['updated']} обновлено, {$result['skipped']} пропущено.",
             ]),
-            ActionButton::make('Ещё импорт', route('moonshine.import.page')),
+            ActionButton::make('Ещё импорт', url('/admin/import')),
         ];
     }
 
@@ -131,7 +131,7 @@ class ImportProductsPage extends Page
         Storage::put($path, file_get_contents($request->file('csv_file')->path()));
         session(['import_csv_path' => $path]);
 
-        return redirect()->route('moonshine.import.page', ['step' => 'mapping']);
+        return redirect()->to(url('/admin/import?step=mapping'));
     }
 
     public function run(Request $request)
@@ -162,6 +162,6 @@ class ImportProductsPage extends Page
         session(['import_result' => compact('created', 'updated', 'skipped')]);
         session()->forget('import_csv_path');
 
-        return redirect()->route('moonshine.import.page', ['step' => 'result']);
+        return redirect()->to(url('/admin/import?step=result'));
     }
 }
